@@ -26,6 +26,14 @@
       margin: 20px 0 10px;
     }
 
+    .page-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
     #searchBox {
       display: block;
       margin: 0 auto 15px;
@@ -61,6 +69,31 @@
       object-fit: contain;
       display: block;
       margin: 0 auto;
+    }
+
+    .image-fallback {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 10px;
+      border: 1px dashed #cfcfcf;
+      border-radius: 10px;
+      background: #fafafa;
+      color: #666;
+      font-size: 12px;
+      line-height: 1.3;
+      white-space: pre-line;
+    }
+
+    .card.is-image-missing img {
+      display: none;
+    }
+
+    .card.is-image-missing .image-fallback {
+      display: flex;
     }
 
     .name {
@@ -110,8 +143,57 @@
       transition: filter 0.2s ease;
     }
 
+    .overlay-image-fallback {
+      width: 100%;
+      height: 100%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+      border: 2px dashed #d7d7d7;
+      border-radius: 24px;
+      background: #fafafa;
+      color: #666;
+      font-size: 24px;
+      line-height: 1.4;
+    }
+
+    #overlayCanvas {
+      width: 100%;
+      height: 100%;
+      display: none;
+      object-fit: contain;
+      background:
+        radial-gradient(circle at center, rgba(0, 0, 0, 0.05) 0 18%, transparent 19%) 0 0 / 18px 18px,
+        #fafafa;
+      border-radius: 24px;
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+    }
+
     #overlay.kleurplaat-mode #overlayImg {
       filter: brightness(2.35) grayscale(1) contrast(8);
+    }
+
+    #overlay.perler-mode #overlayImg {
+      display: none;
+    }
+
+    #overlay.perler-mode .overlay-image-fallback {
+      display: none !important;
+    }
+
+    #overlay.perler-mode #overlayCanvas {
+      display: block;
+    }
+
+    #overlay.image-missing #overlayImg,
+    #overlay.image-missing #overlayCanvas {
+      display: none !important;
+    }
+
+    #overlay.image-missing .overlay-image-fallback {
+      display: flex;
     }
 
     .overlay-content {
@@ -125,7 +207,7 @@
     }
 
     .overlay-info {
-      width: min(360px, 28vw);
+      width: min(680px, 42vw);
       max-height: calc(100vh - 48px);
       overflow: auto;
       border: 1px solid #ddd;
@@ -166,6 +248,17 @@
       line-height: 1.4;
     }
 
+    .overlay-info .info-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .overlay-info .info-column {
+      min-width: 0;
+    }
+
     .overlay-info .label {
       font-weight: 700;
     }
@@ -190,10 +283,49 @@
       color: #666;
     }
 
+    .overlay-info .section-title {
+      margin: 14px 0 8px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .overlay-info .evolution-list,
+    .overlay-info .evolution-list ul {
+      list-style: none;
+      margin: 0;
+      padding-left: 14px;
+    }
+
+    .overlay-info .evolution-list {
+      padding-left: 0;
+    }
+
+    .overlay-info .evolution-list li {
+      margin: 6px 0;
+      position: relative;
+    }
+
+    .overlay-info .evolution-list li::before {
+      content: '•';
+      position: absolute;
+      left: -12px;
+      color: #999;
+    }
+
+    .overlay-info .evolution-link {
+      border: 1px solid #ddd;
+      background: #fff;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 13px;
+      cursor: pointer;
+      text-transform: capitalize;
+    }
+
     .language-toggle {
       display: flex;
       gap: 8px;
-      margin-bottom: 14px;
+      justify-content: center;
     }
 
     .lang-btn {
@@ -236,6 +368,26 @@
       box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
     }
 
+    .page-footer {
+      margin: 32px auto 12px;
+      padding: 16px 18px;
+      max-width: 840px;
+      border: 1px solid #ddd;
+      border-radius: 14px;
+      background: #fafafa;
+      color: #444;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .page-footer p {
+      margin: 0;
+    }
+
+    .page-footer a {
+      color: inherit;
+    }
+
     @media (max-width: 980px) {
       .overlay-content {
         flex-direction: column;
@@ -252,6 +404,11 @@
         width: min(92vw, 520px);
         max-height: 34vh;
       }
+
+      .overlay-info .info-grid {
+        grid-template-columns: 1fr;
+      }
+
     }
 
     @media (max-width: 768px) {
@@ -291,10 +448,17 @@
         height: 42px;
         font-size: 22px;
       }
+
+      .page-footer {
+        margin-top: 24px;
+        padding: 14px;
+      }
     }
 
     @media print {
       #searchBox,
+      .page-header .language-toggle,
+      .page-footer,
       .overlay-toolbar,
       .overlay-info {
         display: none !important;
@@ -332,18 +496,41 @@
         height: auto;
         max-height: 100vh;
       }
+
+      body.overlay-printing #overlayCanvas {
+        width: 100%;
+        height: auto;
+        max-height: 100vh;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>Full Pokédex by Region</h1>
+  <div class="page-header">
+    <div class="language-toggle" id="pageLanguageToggle" aria-label="Language switch">
+      <button class="lang-btn is-active" data-lang="en" type="button">🇬🇧 EN</button>
+      <button class="lang-btn" data-lang="nl" type="button">🇳🇱 NL</button>
+    </div>
+    <h1>Full Pokédex by Region</h1>
+  </div>
   <input type="text" id="searchBox" placeholder="Search Pokémon...">
 
   <div id="container"></div>
 
+  <footer class="page-footer">
+    <p>
+      Recommendation: keep using the current artwork and cry sources for this project. The Pokemon images come from
+      <a href="https://github.com/HybridShivam/Pokemon" target="_blank" rel="noreferrer">HybridShivam/Pokemon</a>
+      and the sounds come from
+      <a href="https://github.com/PokeAPI/cries" target="_blank" rel="noreferrer">PokeAPI cries</a>.
+      They fit this page well and are reliable sources for the current experience.
+    </p>
+  </footer>
+
   <div id="overlay" aria-hidden="true">
     <div class="overlay-toolbar">
       <button class="overlay-btn" id="overlayColoring" aria-label="Kleurplaat" title="Kleurplaat">🎨</button>
+      <button class="overlay-btn" id="overlayPerler" aria-label="Perler beads" title="Perler beads">🔘</button>
       <button class="overlay-btn sound-btn" id="overlaySound" aria-label="Hear me!" title="Hear me!">🔊</button>
       <button class="overlay-btn print-btn" id="overlayPrint" aria-label="Print" title="Print">🖨️</button>
       <button class="overlay-btn" id="closeBtn" aria-label="Close" title="Close">✕</button>
@@ -351,6 +538,8 @@
     <div class="overlay-content">
       <div class="overlay-media">
         <img id="overlayImg" alt="Selected Pokémon" crossorigin="anonymous">
+        <canvas id="overlayCanvas" aria-label="Perler bead pattern"></canvas>
+        <div class="overlay-image-fallback" id="overlayImageFallback">Image not available</div>
       </div>
       <aside class="overlay-info" id="overlayInfo" aria-live="polite">
         <div class="status" id="overlayInfoStatus">Loading Pokémon info...</div>
@@ -376,6 +565,7 @@
         loading: 'Loading Pokemon info...',
         error: 'Could not load Pokemon info right now.',
         noPokedex: 'No Pokedex entry available.',
+        imageUnavailable: 'Image not available',
         unknownPokemon: 'Unknown Pokemon',
         type: 'Type',
         height: 'Height',
@@ -383,6 +573,8 @@
         color: 'Color',
         shape: 'Shape',
         habitat: 'Habitat',
+        evolutions: 'Evolution chain',
+        noEvolutions: 'No evolution chain available.',
         baseHappiness: 'Base happiness',
         captureRate: 'Capture rate',
         unknown: 'Unknown',
@@ -392,6 +584,7 @@
         loading: 'Pokemon-info laden...',
         error: 'Kon Pokemon-info nu niet laden.',
         noPokedex: 'Geen Pokedex-beschrijving beschikbaar.',
+        imageUnavailable: 'Afbeelding niet beschikbaar',
         unknownPokemon: 'Onbekende Pokemon',
         type: 'Type',
         height: 'Lengte',
@@ -399,6 +592,8 @@
         color: 'Kleur',
         shape: 'Vorm',
         habitat: 'Leefgebied',
+        evolutions: 'Evolutieketen',
+        noEvolutions: 'Geen evolutieketen beschikbaar.',
         baseHappiness: 'Basisgeluk',
         captureRate: 'Vangkans',
         unknown: 'Onbekend',
@@ -408,22 +603,28 @@
 
     const container = document.getElementById('container');
     const searchBox = document.getElementById('searchBox');
+    const pageLanguageToggle = document.getElementById('pageLanguageToggle');
     const overlay = document.getElementById('overlay');
     const overlayImg = document.getElementById('overlayImg');
+    const overlayImageFallback = document.getElementById('overlayImageFallback');
     const overlayInfo = document.getElementById('overlayInfo');
     const overlayColoring = document.getElementById('overlayColoring');
+    const overlayPerler = document.getElementById('overlayPerler');
     const overlaySound = document.getElementById('overlaySound');
     const overlayPrint = document.getElementById('overlayPrint');
     const closeBtn = document.getElementById('closeBtn');
+    const overlayCanvas = document.getElementById('overlayCanvas');
 
     let currentAudio = null;
     let currentPokemonId = null;
     let currentPokemonName = '';
-    let kleurplaatMode = false;
+    let overlayMode = 'normal';
     let currentLanguage = 'en';
     let currentOverlayData = null;
+    let activePerlerRenderId = 0;
     const speciesCache = new Map();
     const pokemonCache = new Map();
+    const evolutionChainCache = new Map();
 
     function t(key) {
       return uiText[currentLanguage][key] || uiText.en[key] || key;
@@ -437,9 +638,282 @@
       return `https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${id}.ogg`;
     }
 
-    function applyKleurplaatMode() {
-      overlay.classList.toggle('kleurplaat-mode', kleurplaatMode);
-      overlayColoring.textContent = kleurplaatMode ? '✏️' : '🎨';
+    function applyOverlayMode() {
+      const isColoring = overlayMode === 'coloring';
+      const isPerler = overlayMode === 'perler';
+      overlay.classList.toggle('kleurplaat-mode', isColoring);
+      overlay.classList.toggle('perler-mode', isPerler);
+      overlayColoring.textContent = isColoring ? '✏️' : '🎨';
+      overlayPerler.textContent = isPerler ? '◉' : '🔘';
+    }
+
+    function markCardImageUnavailable(card, pokemonName) {
+      card.classList.add('is-image-missing');
+      const fallback = card.querySelector('.image-fallback');
+      if (fallback) {
+        fallback.textContent = `${capitalize(pokemonName)}\n${t('imageUnavailable')}`;
+      }
+    }
+
+    function refreshCardImageFallbacks() {
+      document.querySelectorAll('.card.is-image-missing').forEach((card) => {
+        markCardImageUnavailable(card, card.dataset.name || '');
+      });
+    }
+
+    function clearOverlayImageFallback() {
+      overlay.classList.remove('image-missing');
+      overlayImageFallback.textContent = t('imageUnavailable');
+    }
+
+    function showOverlayImageFallback() {
+      overlay.classList.add('image-missing');
+      overlayImageFallback.textContent = t('imageUnavailable');
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function colorDistanceSquared(a, b) {
+      const dr = a[0] - b[0];
+      const dg = a[1] - b[1];
+      const db = a[2] - b[2];
+      return (dr * dr) + (dg * dg) + (db * db);
+    }
+
+    function averageColor(pixels) {
+      if (pixels.length === 0) {
+        return [255, 255, 255];
+      }
+
+      let red = 0;
+      let green = 0;
+      let blue = 0;
+
+      pixels.forEach((pixel) => {
+        red += pixel[0];
+        green += pixel[1];
+        blue += pixel[2];
+      });
+
+      return [
+        Math.round(red / pixels.length),
+        Math.round(green / pixels.length),
+        Math.round(blue / pixels.length)
+      ];
+    }
+
+    function quantizePalette(pixels, maxColors) {
+      if (pixels.length === 0) {
+        return [];
+      }
+
+      const uniqueKeys = new Set(pixels.map((pixel) => pixel.join(',')));
+      if (uniqueKeys.size <= maxColors) {
+        return Array.from(uniqueKeys, (key) => key.split(',').map(Number));
+      }
+
+      const sortedPixels = pixels
+        .slice()
+        .sort((a, b) => ((a[0] + a[1] + a[2]) - (b[0] + b[1] + b[2])));
+
+      let clusters = [sortedPixels];
+      while (clusters.length < maxColors) {
+        let clusterIndex = -1;
+        let widestRange = -1;
+
+        clusters.forEach((cluster, index) => {
+          if (cluster.length < 2) {
+            return;
+          }
+
+          const reds = cluster.map((pixel) => pixel[0]);
+          const greens = cluster.map((pixel) => pixel[1]);
+          const blues = cluster.map((pixel) => pixel[2]);
+          const range = Math.max(
+            Math.max(...reds) - Math.min(...reds),
+            Math.max(...greens) - Math.min(...greens),
+            Math.max(...blues) - Math.min(...blues)
+          );
+
+          if (range > widestRange) {
+            widestRange = range;
+            clusterIndex = index;
+          }
+        });
+
+        if (clusterIndex === -1) {
+          break;
+        }
+
+        const cluster = clusters.splice(clusterIndex, 1)[0];
+        const reds = cluster.map((pixel) => pixel[0]);
+        const greens = cluster.map((pixel) => pixel[1]);
+        const blues = cluster.map((pixel) => pixel[2]);
+        const redRange = Math.max(...reds) - Math.min(...reds);
+        const greenRange = Math.max(...greens) - Math.min(...greens);
+        const blueRange = Math.max(...blues) - Math.min(...blues);
+        const channelIndex = redRange >= greenRange && redRange >= blueRange ? 0 : (greenRange >= blueRange ? 1 : 2);
+        const sortedCluster = cluster.slice().sort((a, b) => a[channelIndex] - b[channelIndex]);
+        const midpoint = Math.ceil(sortedCluster.length / 2);
+
+        clusters.push(sortedCluster.slice(0, midpoint), sortedCluster.slice(midpoint));
+      }
+
+      return clusters.map((cluster) => averageColor(cluster));
+    }
+
+    function findNearestPaletteColor(pixel, palette) {
+      if (palette.length === 0) {
+        return pixel;
+      }
+
+      let nearest = palette[0];
+      let nearestDistance = colorDistanceSquared(pixel, nearest);
+
+      for (let index = 1; index < palette.length; index += 1) {
+        const paletteColor = palette[index];
+        const distance = colorDistanceSquared(pixel, paletteColor);
+        if (distance < nearestDistance) {
+          nearest = paletteColor;
+          nearestDistance = distance;
+        }
+      }
+
+      return nearest;
+    }
+
+    function buildPerlerGrid(image, columns) {
+      const width = clamp(columns, 24, 72);
+      const aspectRatio = image.naturalWidth / image.naturalHeight || 1;
+      const height = clamp(Math.round(width / aspectRatio), 24, 72);
+      const sourceCanvas = document.createElement('canvas');
+      sourceCanvas.width = width;
+      sourceCanvas.height = height;
+      const sourceContext = sourceCanvas.getContext('2d', { willReadFrequently: true });
+
+      sourceContext.clearRect(0, 0, width, height);
+      sourceContext.drawImage(image, 0, 0, width, height);
+
+      const imageData = sourceContext.getImageData(0, 0, width, height).data;
+      const pixels = [];
+      const pixelGrid = [];
+
+      for (let index = 0; index < imageData.length; index += 4) {
+        const alpha = imageData[index + 3];
+        if (alpha < 20) {
+          pixelGrid.push(null);
+          continue;
+        }
+
+        const pixel = [imageData[index], imageData[index + 1], imageData[index + 2]];
+        pixels.push(pixel);
+        pixelGrid.push(pixel);
+      }
+
+      const palette = quantizePalette(pixels, 25);
+      const quantizedGrid = pixelGrid.map((pixel) => (pixel ? findNearestPaletteColor(pixel, palette) : null));
+
+      return { width, height, palette, quantizedGrid };
+    }
+
+    function drawPerlerPattern(image) {
+      if (!image.complete || !image.naturalWidth || !image.naturalHeight) {
+        return;
+      }
+
+      const { width, height, quantizedGrid } = buildPerlerGrid(image, 48);
+      const beadPitch = 20;
+      const beadRadius = beadPitch * 0.39;
+      const holeRadius = beadPitch * 0.14;
+      const padding = beadPitch;
+      const canvasWidth = (width * beadPitch) + (padding * 2);
+      const canvasHeight = (height * beadPitch) + (padding * 2);
+      const context = overlayCanvas.getContext('2d');
+
+      overlayCanvas.width = canvasWidth;
+      overlayCanvas.height = canvasHeight;
+
+      context.clearRect(0, 0, canvasWidth, canvasHeight);
+      context.fillStyle = '#f7f4ee';
+      context.fillRect(0, 0, canvasWidth, canvasHeight);
+
+      context.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      quantizedGrid.forEach((pixel, index) => {
+        const x = index % width;
+        const y = Math.floor(index / width);
+        const centerX = padding + (x * beadPitch) + (beadPitch / 2);
+        const centerY = padding + (y * beadPitch) + (beadPitch / 2);
+
+        context.beginPath();
+        context.arc(centerX, centerY, beadPitch * 0.04, 0, Math.PI * 2);
+        context.fill();
+      });
+
+      quantizedGrid.forEach((pixel, index) => {
+        if (!pixel) {
+          return;
+        }
+
+        const x = index % width;
+        const y = Math.floor(index / width);
+        const centerX = padding + (x * beadPitch) + (beadPitch / 2);
+        const centerY = padding + (y * beadPitch) + (beadPitch / 2);
+
+        const beadColor = `rgb(${pixel[0]}, ${pixel[1]}, ${pixel[2]})`;
+        context.fillStyle = beadColor;
+        context.beginPath();
+        context.arc(centerX, centerY, beadRadius, 0, Math.PI * 2);
+        context.fill();
+
+        context.fillStyle = 'rgba(255, 255, 255, 0.12)';
+        context.beginPath();
+        context.arc(centerX - (beadPitch * 0.10), centerY - (beadPitch * 0.12), beadRadius * 0.28, 0, Math.PI * 2);
+        context.fill();
+
+        context.save();
+        context.globalCompositeOperation = 'destination-out';
+        context.beginPath();
+        context.arc(centerX, centerY, holeRadius, 0, Math.PI * 2);
+        context.fill();
+        context.restore();
+
+        context.fillStyle = 'rgba(255, 255, 255, 0.18)';
+        context.beginPath();
+        context.arc(centerX - (beadPitch * 0.02), centerY - (beadPitch * 0.02), holeRadius * 0.52, 0, Math.PI * 2);
+        context.fill();
+
+        context.strokeStyle = 'rgba(0, 0, 0, 0.16)';
+        context.lineWidth = 1.3;
+        context.beginPath();
+        context.arc(centerX, centerY, beadRadius, 0, Math.PI * 2);
+        context.stroke();
+
+        context.strokeStyle = 'rgba(0, 0, 0, 0.24)';
+        context.lineWidth = 1.1;
+        context.beginPath();
+        context.arc(centerX, centerY, holeRadius, 0, Math.PI * 2);
+        context.stroke();
+      });
+    }
+
+    function ensurePerlerPattern() {
+      const renderId = ++activePerlerRenderId;
+
+      const renderWhenReady = () => {
+        if (renderId !== activePerlerRenderId) {
+          return;
+        }
+        drawPerlerPattern(overlayImg);
+      };
+
+      if (overlayImg.complete && overlayImg.naturalWidth) {
+        renderWhenReady();
+        return;
+      }
+
+      overlayImg.addEventListener('load', renderWhenReady, { once: true });
     }
 
     function capitalize(value) {
@@ -478,6 +952,43 @@
       return `${value} ${unit}`;
     }
 
+    function extractPokemonId(url) {
+      const match = url && url.match(/\/(\d+)\/?$/);
+      return match ? Number(match[1]) : null;
+    }
+
+    function renderEvolutionNode(node) {
+      const pokemonId = extractPokemonId(node.species.url);
+      const children = node.evolves_to || [];
+      const childrenMarkup = children.length > 0
+        ? `<ul>${children.map((child) => renderEvolutionNode(child)).join('')}</ul>`
+        : '';
+
+      if (!pokemonId) {
+        return `<li>${capitalize(node.species.name)}${childrenMarkup}</li>`;
+      }
+
+      return `
+        <li>
+          <button class="evolution-link" type="button" data-pokemon-id="${pokemonId}" data-pokemon-name="${node.species.name}">
+            #${pokemonId} ${capitalize(node.species.name)}
+          </button>
+          ${childrenMarkup}
+        </li>
+      `;
+    }
+
+    function renderEvolutionChain(chain) {
+      if (!chain || !chain.chain) {
+        return `<div class="info-row">${t('noEvolutions')}</div>`;
+      }
+
+      return [
+        `<div class="section-title">${t('evolutions')}</div>`,
+        `<div class="fact-box"><ul class="evolution-list">${renderEvolutionNode(chain.chain)}</ul></div>`
+      ].join('');
+    }
+
     function renderLanguageToggle() {
       return `
         <div class="language-toggle">
@@ -487,8 +998,14 @@
       `;
     }
 
-    function renderOverlayInfo(pokemon, species) {
-      currentOverlayData = { pokemon, species };
+    function syncLanguageButtons() {
+      document.querySelectorAll('.lang-btn').forEach((button) => {
+        button.classList.toggle('is-active', button.dataset.lang === currentLanguage);
+      });
+    }
+
+    function renderOverlayInfo(pokemon, species, evolutionChain) {
+      currentOverlayData = { pokemon, species, evolutionChain };
 
       const typesMarkup = pokemon.types
         .slice()
@@ -507,9 +1024,10 @@
       const captureRate = species.capture_rate ?? t('unknown');
 
       overlayInfo.innerHTML = [
-        renderLanguageToggle(),
         `<h3>#${pokemon.id} ${capitalize(pokemon.name)}</h3>`,
         `<div class="meta">${genus}</div>`,
+        `<div class="info-grid">`,
+        `<div class="info-column">`,
         `<div class="fact-box">${factText}</div>`,
         `<div class="info-row"><span class="label">${t('type')}:</span><div class="types">${typesMarkup}</div></div>`,
         `<div class="info-row"><span class="label">${t('height')}:</span> ${formatMeasurement(heightCm, 'cm')}</div>`,
@@ -518,27 +1036,46 @@
         `<div class="info-row"><span class="label">${t('shape')}:</span> ${shape}</div>`,
         `<div class="info-row"><span class="label">${t('habitat')}:</span> ${habitat}</div>`,
         `<div class="info-row"><span class="label">${t('baseHappiness')}:</span> ${baseHappiness}</div>`,
-        `<div class="info-row"><span class="label">${t('captureRate')}:</span> ${captureRate}</div>`
+        `<div class="info-row"><span class="label">${t('captureRate')}:</span> ${captureRate}</div>`,
+        `</div>`,
+        `<div class="info-column">`,
+        renderEvolutionChain(evolutionChain),
+        `</div>`,
+        `</div>`,
       ].join('');
       overlayInfo.classList.add('is-visible');
-      bindLanguageToggleEvents();
     }
 
-    function bindLanguageToggleEvents() {
-      const buttons = overlayInfo.querySelectorAll('.lang-btn');
-      buttons.forEach((button) => {
+    function bindEvolutionLinkEvents() {
+      overlayInfo.querySelectorAll('.evolution-link').forEach((button) => {
         button.addEventListener('click', () => {
-          const nextLang = button.dataset.lang;
-          if (!nextLang || nextLang === currentLanguage) {
+          const pokemonId = Number(button.dataset.pokemonId);
+          const pokemonName = button.dataset.pokemonName || '';
+          if (!pokemonId) {
             return;
           }
-          currentLanguage = nextLang;
-          searchBox.placeholder = t('searchPlaceholder');
-          if (currentOverlayData) {
-            renderOverlayInfo(currentOverlayData.pokemon, currentOverlayData.species);
-          }
+          openOverlay(pokemonId, pokemonName);
         });
       });
+    }
+
+    function setLanguage(nextLang) {
+      if (!nextLang || nextLang === currentLanguage) {
+        return;
+      }
+
+      currentLanguage = nextLang;
+      searchBox.placeholder = t('searchPlaceholder');
+      syncLanguageButtons();
+      refreshCardImageFallbacks();
+      if (overlay.classList.contains('image-missing')) {
+        overlayImageFallback.textContent = t('imageUnavailable');
+      }
+
+      if (currentOverlayData) {
+        renderOverlayInfo(currentOverlayData.pokemon, currentOverlayData.species, currentOverlayData.evolutionChain);
+        bindEvolutionLinkEvents();
+      }
     }
 
     async function fetchJson(url) {
@@ -559,16 +1096,31 @@
       return Promise.all([pokemonCache.get(id), speciesCache.get(id)]);
     }
 
+    async function fetchEvolutionChain(species) {
+      const evolutionUrl = species && species.evolution_chain && species.evolution_chain.url;
+      if (!evolutionUrl) {
+        return null;
+      }
+
+      if (!evolutionChainCache.has(evolutionUrl)) {
+        evolutionChainCache.set(evolutionUrl, fetchJson(evolutionUrl));
+      }
+
+      return evolutionChainCache.get(evolutionUrl);
+    }
+
     async function showOverlayInfo(id) {
       overlayInfo.classList.add('is-visible');
       overlayInfo.innerHTML = `<div class="status">${t('loading')}</div>`;
 
       try {
         const [pokemon, species] = await fetchPokemonDetails(id);
+        const evolutionChain = await fetchEvolutionChain(species);
         if (currentPokemonId !== id) {
           return;
         }
-        renderOverlayInfo(pokemon, species);
+        renderOverlayInfo(pokemon, species, evolutionChain);
+        bindEvolutionLinkEvents();
       } catch (error) {
         if (currentPokemonId !== id) {
           return;
@@ -581,10 +1133,18 @@
     function openOverlay(id, pokemonName) {
       currentPokemonId = id;
       currentPokemonName = pokemonName;
-      kleurplaatMode = false;
+      overlayMode = 'normal';
+      clearOverlayImageFallback();
+      overlayImg.onerror = () => {
+        showOverlayImageFallback();
+      };
+      overlayImg.onload = () => {
+        clearOverlayImageFallback();
+      };
       overlayImg.src = imageUrl(id);
       overlayImg.alt = pokemonName;
-      applyKleurplaatMode();
+      activePerlerRenderId += 1;
+      applyOverlayMode();
       overlay.classList.add('is-open');
       overlay.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
@@ -593,8 +1153,13 @@
 
     function closeOverlay() {
       overlay.classList.remove('is-open', 'kleurplaat-mode');
-      kleurplaatMode = false;
-      applyKleurplaatMode();
+      overlay.classList.remove('perler-mode');
+      overlay.classList.remove('image-missing');
+      overlayMode = 'normal';
+      activePerlerRenderId += 1;
+      const context = overlayCanvas.getContext('2d');
+      context.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+      applyOverlayMode();
       overlay.setAttribute('aria-hidden', 'true');
       overlayInfo.classList.remove('is-visible');
       overlayInfo.innerHTML = `<div class="status">${t('loading')}</div>`;
@@ -615,16 +1180,29 @@
       console.assert(renderLanguageToggle().includes('data-lang="en"'), 'language toggle should contain EN button');
       console.assert(renderLanguageToggle().includes('data-lang="nl"'), 'language toggle should contain NL button');
 
-      kleurplaatMode = false;
-      applyKleurplaatMode();
+      overlayMode = 'normal';
+      applyOverlayMode();
       console.assert(!overlay.classList.contains('kleurplaat-mode'), 'normal mode should not apply kleurplaat class');
 
-      kleurplaatMode = true;
-      applyKleurplaatMode();
+      overlayMode = 'coloring';
+      applyOverlayMode();
       console.assert(overlay.classList.contains('kleurplaat-mode'), 'kleurplaat mode should apply class');
 
-      kleurplaatMode = false;
-      applyKleurplaatMode();
+      overlayMode = 'perler';
+      applyOverlayMode();
+      console.assert(overlay.classList.contains('perler-mode'), 'perler mode should apply class');
+
+      const palette = quantizePalette([
+        [255, 0, 0],
+        [250, 10, 10],
+        [0, 255, 0],
+        [0, 240, 10]
+      ], 2);
+      console.assert(palette.length <= 2, 'quantizePalette should cap palette size');
+      console.assert(Array.isArray(findNearestPaletteColor([254, 5, 5], palette)), 'nearest palette lookup should return a color');
+
+      overlayMode = 'normal';
+      applyOverlayMode();
     }
 
     async function loadPokemon() {
@@ -655,12 +1233,20 @@
           img.src = imageUrl(i);
           img.alt = pokemon.name;
           img.setAttribute('loading', 'lazy');
+          img.addEventListener('error', () => {
+            markCardImageUnavailable(card, pokemon.name);
+          });
+
+          const imageFallback = document.createElement('div');
+          imageFallback.className = 'image-fallback';
+          imageFallback.textContent = `${capitalize(pokemon.name)}\n${t('imageUnavailable')}`;
 
           const pokemonNameEl = document.createElement('div');
           pokemonNameEl.className = 'name';
           pokemonNameEl.textContent = `${i}. ${pokemon.name}`;
 
           card.appendChild(img);
+          card.appendChild(imageFallback);
           card.appendChild(pokemonNameEl);
           card.addEventListener('click', () => openOverlay(i, pokemon.name));
           grid.appendChild(card);
@@ -689,10 +1275,27 @@
       });
     });
 
+    pageLanguageToggle.addEventListener('click', (event) => {
+      const button = event.target.closest('.lang-btn');
+      if (!button) {
+        return;
+      }
+      setLanguage(button.dataset.lang);
+    });
+
     overlayColoring.addEventListener('click', (event) => {
       event.stopPropagation();
-      kleurplaatMode = !kleurplaatMode;
-      applyKleurplaatMode();
+      overlayMode = overlayMode === 'coloring' ? 'normal' : 'coloring';
+      applyOverlayMode();
+    });
+
+    overlayPerler.addEventListener('click', (event) => {
+      event.stopPropagation();
+      overlayMode = overlayMode === 'perler' ? 'normal' : 'perler';
+      applyOverlayMode();
+      if (overlayMode === 'perler') {
+        ensurePerlerPattern();
+      }
     });
 
     overlaySound.addEventListener('click', (event) => {
@@ -740,6 +1343,7 @@
     });
 
     searchBox.placeholder = t('searchPlaceholder');
+    syncLanguageButtons();
     runSelfTests();
     loadPokemon();
   </script>
