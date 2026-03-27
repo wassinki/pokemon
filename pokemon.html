@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Full Pokédex by Region</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0 auto;
+      padding: 10px;
+      background: white;
+      max-width: 1400px;
+    }
+
+    h1 {
+      text-align: center;
+      margin: 10px 0;
+    }
+
+    h2 {
+      margin: 20px 0 10px;
+    }
+
+    #searchBox {
+      display: block;
+      margin: 0 auto 15px;
+      padding: 10px 12px;
+      width: min(420px, calc(100vw - 32px));
+      font-size: 16px;
+    }
+
+    .region {
+      margin-bottom: 20px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 8px;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 6px;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .card img {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      max-width: 120px;
+      height: auto;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .name {
+      font-size: 10px;
+      margin-top: 4px;
+      word-break: break-word;
+      text-transform: capitalize;
+    }
+
+    .sound-btn,
+    .print-btn {
+      display: none;
+    }
+
+    #overlay {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      background: white;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      overflow: hidden;
+    }
+
+    #overlay.is-open {
+      display: flex;
+    }
+
+    .overlay-media {
+      position: relative;
+      width: min(94vw, 94vh);
+      height: min(94vw, 94vh);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    #overlayImg {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      transition: filter 0.2s ease;
+    }
+
+    #overlay.kleurplaat-mode #overlayImg {
+      filter: brightness(2.35) grayscale(1) contrast(8);
+    }
+
+    .overlay-content {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      padding: 24px;
+    }
+
+    .overlay-info {
+      width: min(360px, 28vw);
+      max-height: calc(100vh - 48px);
+      overflow: auto;
+      border: 1px solid #ddd;
+      border-radius: 16px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+      display: none;
+    }
+
+    .overlay-info.is-visible {
+      display: block;
+    }
+
+    .overlay-info h3 {
+      margin: 0 0 8px;
+      font-size: 24px;
+      text-transform: capitalize;
+    }
+
+    .overlay-info .meta {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 12px;
+    }
+
+    .overlay-info .fact-box {
+      border-radius: 12px;
+      background: #f7f7f7;
+      padding: 12px;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
+    .overlay-info .info-row {
+      margin-bottom: 8px;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .overlay-info .label {
+      font-weight: 700;
+    }
+
+    .overlay-info .types {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .overlay-info .type-pill {
+      background: #efefef;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+      text-transform: capitalize;
+    }
+
+    .overlay-info .status {
+      font-size: 14px;
+      color: #666;
+    }
+
+    .language-toggle {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .lang-btn {
+      border: 1px solid #ccc;
+      background: #fff;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .lang-btn.is-active {
+      background: #111;
+      color: #fff;
+      border-color: #111;
+    }
+
+    .overlay-toolbar {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      display: flex;
+      gap: 10px;
+      z-index: 10000;
+    }
+
+    .overlay-btn {
+      appearance: none;
+      border: none;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 999px;
+      width: 46px;
+      height: 46px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      line-height: 1;
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+    }
+
+    @media (max-width: 980px) {
+      .overlay-content {
+        flex-direction: column;
+        padding: 64px 16px 16px;
+        gap: 16px;
+      }
+
+      .overlay-media {
+        width: min(92vw, 60vh);
+        height: min(92vw, 60vh);
+      }
+
+      .overlay-info {
+        width: min(92vw, 520px);
+        max-height: 34vh;
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 8px;
+      }
+
+      h1 {
+        font-size: 22px;
+      }
+
+      h2 {
+        font-size: 18px;
+      }
+
+      .grid {
+        grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+        gap: 6px;
+      }
+
+      .card {
+        padding: 6px 4px;
+      }
+
+      .name {
+        font-size: 10px;
+      }
+
+      .overlay-toolbar {
+        top: 12px;
+        right: 12px;
+        gap: 8px;
+      }
+
+      .overlay-btn {
+        width: 42px;
+        height: 42px;
+        font-size: 22px;
+      }
+    }
+
+    @media print {
+      #searchBox,
+      .overlay-toolbar,
+      .overlay-info {
+        display: none !important;
+      }
+
+      body {
+        padding: 0;
+        max-width: none;
+      }
+
+      body.overlay-printing > *:not(#overlay) {
+        display: none !important;
+      }
+
+      body.overlay-printing #overlay {
+        position: static;
+        display: flex !important;
+        width: auto;
+        height: auto;
+      }
+
+      body.overlay-printing .overlay-content {
+        padding: 0;
+        display: flex;
+      }
+
+      body.overlay-printing .overlay-media {
+        width: 100%;
+        height: auto;
+        min-height: 100vh;
+      }
+
+      body.overlay-printing #overlayImg {
+        width: 100%;
+        height: auto;
+        max-height: 100vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Full Pokédex by Region</h1>
+  <input type="text" id="searchBox" placeholder="Search Pokémon...">
+
+  <div id="container"></div>
+
+  <div id="overlay" aria-hidden="true">
+    <div class="overlay-toolbar">
+      <button class="overlay-btn" id="overlayColoring" aria-label="Kleurplaat" title="Kleurplaat">🎨</button>
+      <button class="overlay-btn sound-btn" id="overlaySound" aria-label="Hear me!" title="Hear me!">🔊</button>
+      <button class="overlay-btn print-btn" id="overlayPrint" aria-label="Print" title="Print">🖨️</button>
+      <button class="overlay-btn" id="closeBtn" aria-label="Close" title="Close">✕</button>
+    </div>
+    <div class="overlay-content">
+      <div class="overlay-media">
+        <img id="overlayImg" alt="Selected Pokémon" crossorigin="anonymous">
+      </div>
+      <aside class="overlay-info" id="overlayInfo" aria-live="polite">
+        <div class="status" id="overlayInfoStatus">Loading Pokémon info...</div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const regions = [
+      { name: 'Kanto', start: 1, end: 151 },
+      { name: 'Johto', start: 152, end: 251 },
+      { name: 'Hoenn', start: 252, end: 386 },
+      { name: 'Sinnoh', start: 387, end: 493 },
+      { name: 'Unova', start: 494, end: 649 },
+      { name: 'Kalos', start: 650, end: 721 },
+      { name: 'Alola', start: 722, end: 809 },
+      { name: 'Galar', start: 810, end: 905 },
+      { name: 'Paldea', start: 906, end: 1025 }
+    ];
+
+    const uiText = {
+      en: {
+        loading: 'Loading Pokemon info...',
+        error: 'Could not load Pokemon info right now.',
+        noPokedex: 'No Pokedex entry available.',
+        unknownPokemon: 'Unknown Pokemon',
+        type: 'Type',
+        height: 'Height',
+        weight: 'Weight',
+        color: 'Color',
+        shape: 'Shape',
+        habitat: 'Habitat',
+        baseHappiness: 'Base happiness',
+        captureRate: 'Capture rate',
+        unknown: 'Unknown',
+        searchPlaceholder: 'Search Pokémon...'
+      },
+      nl: {
+        loading: 'Pokemon-info laden...',
+        error: 'Kon Pokemon-info nu niet laden.',
+        noPokedex: 'Geen Pokedex-beschrijving beschikbaar.',
+        unknownPokemon: 'Onbekende Pokemon',
+        type: 'Type',
+        height: 'Lengte',
+        weight: 'Gewicht',
+        color: 'Kleur',
+        shape: 'Vorm',
+        habitat: 'Leefgebied',
+        baseHappiness: 'Basisgeluk',
+        captureRate: 'Vangkans',
+        unknown: 'Onbekend',
+        searchPlaceholder: 'Zoek Pokémon...'
+      }
+    };
+
+    const container = document.getElementById('container');
+    const searchBox = document.getElementById('searchBox');
+    const overlay = document.getElementById('overlay');
+    const overlayImg = document.getElementById('overlayImg');
+    const overlayInfo = document.getElementById('overlayInfo');
+    const overlayColoring = document.getElementById('overlayColoring');
+    const overlaySound = document.getElementById('overlaySound');
+    const overlayPrint = document.getElementById('overlayPrint');
+    const closeBtn = document.getElementById('closeBtn');
+
+    let currentAudio = null;
+    let currentPokemonId = null;
+    let currentPokemonName = '';
+    let kleurplaatMode = false;
+    let currentLanguage = 'en';
+    let currentOverlayData = null;
+    const speciesCache = new Map();
+    const pokemonCache = new Map();
+
+    function t(key) {
+      return uiText[currentLanguage][key] || uiText.en[key] || key;
+    }
+
+    function imageUrl(id) {
+      return `https://raw.githubusercontent.com/HybridShivam/Pokemon/master/assets/images/${String(id).padStart(3, '0')}.png`;
+    }
+
+    function cryUrl(id) {
+      return `https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${id}.ogg`;
+    }
+
+    function applyKleurplaatMode() {
+      overlay.classList.toggle('kleurplaat-mode', kleurplaatMode);
+      overlayColoring.textContent = kleurplaatMode ? '✏️' : '🎨';
+    }
+
+    function capitalize(value) {
+      return value ? value.charAt(0).toUpperCase() + value.slice(1) : '';
+    }
+
+    function normalizeText(value) {
+      return value.replace(/\f|\n|\r/g, ' ').replace(/\s+/g, ' ').trim();
+    }
+
+    function getLocalizedFlavorText(species, language) {
+      const entries = species.flavor_text_entries || [];
+      const entry = entries.find((item) => item.language && item.language.name === language);
+      if (entry) {
+        return normalizeText(entry.flavor_text);
+      }
+      if (language !== 'en') {
+        return getLocalizedFlavorText(species, 'en');
+      }
+      return t('noPokedex');
+    }
+
+    function getLocalizedGenus(species, language) {
+      const genera = species.genera || [];
+      const genusEntry = genera.find((item) => item.language && item.language.name === language);
+      if (genusEntry) {
+        return genusEntry.genus;
+      }
+      if (language !== 'en') {
+        return getLocalizedGenus(species, 'en');
+      }
+      return t('unknownPokemon');
+    }
+
+    function formatMeasurement(value, unit) {
+      return `${value} ${unit}`;
+    }
+
+    function renderLanguageToggle() {
+      return `
+        <div class="language-toggle">
+          <button class="lang-btn ${currentLanguage === 'en' ? 'is-active' : ''}" data-lang="en" type="button">🇬🇧 EN</button>
+          <button class="lang-btn ${currentLanguage === 'nl' ? 'is-active' : ''}" data-lang="nl" type="button">🇳🇱 NL</button>
+        </div>
+      `;
+    }
+
+    function renderOverlayInfo(pokemon, species) {
+      currentOverlayData = { pokemon, species };
+
+      const typesMarkup = pokemon.types
+        .slice()
+        .sort((a, b) => a.slot - b.slot)
+        .map((typeInfo) => `<span class="type-pill">${capitalize(typeInfo.type.name)}</span>`)
+        .join('');
+
+      const factText = getLocalizedFlavorText(species, currentLanguage);
+      const genus = getLocalizedGenus(species, currentLanguage);
+      const heightCm = pokemon.height * 10;
+      const weightKg = pokemon.weight / 10;
+      const habitat = species.habitat ? capitalize(species.habitat.name) : t('unknown');
+      const shape = species.shape ? capitalize(species.shape.name) : t('unknown');
+      const color = species.color ? capitalize(species.color.name) : t('unknown');
+      const baseHappiness = species.base_happiness ?? t('unknown');
+      const captureRate = species.capture_rate ?? t('unknown');
+
+      overlayInfo.innerHTML = [
+        renderLanguageToggle(),
+        `<h3>#${pokemon.id} ${capitalize(pokemon.name)}</h3>`,
+        `<div class="meta">${genus}</div>`,
+        `<div class="fact-box">${factText}</div>`,
+        `<div class="info-row"><span class="label">${t('type')}:</span><div class="types">${typesMarkup}</div></div>`,
+        `<div class="info-row"><span class="label">${t('height')}:</span> ${formatMeasurement(heightCm, 'cm')}</div>`,
+        `<div class="info-row"><span class="label">${t('weight')}:</span> ${formatMeasurement(weightKg, 'kg')}</div>`,
+        `<div class="info-row"><span class="label">${t('color')}:</span> ${color}</div>`,
+        `<div class="info-row"><span class="label">${t('shape')}:</span> ${shape}</div>`,
+        `<div class="info-row"><span class="label">${t('habitat')}:</span> ${habitat}</div>`,
+        `<div class="info-row"><span class="label">${t('baseHappiness')}:</span> ${baseHappiness}</div>`,
+        `<div class="info-row"><span class="label">${t('captureRate')}:</span> ${captureRate}</div>`
+      ].join('');
+      overlayInfo.classList.add('is-visible');
+      bindLanguageToggleEvents();
+    }
+
+    function bindLanguageToggleEvents() {
+      const buttons = overlayInfo.querySelectorAll('.lang-btn');
+      buttons.forEach((button) => {
+        button.addEventListener('click', () => {
+          const nextLang = button.dataset.lang;
+          if (!nextLang || nextLang === currentLanguage) {
+            return;
+          }
+          currentLanguage = nextLang;
+          searchBox.placeholder = t('searchPlaceholder');
+          if (currentOverlayData) {
+            renderOverlayInfo(currentOverlayData.pokemon, currentOverlayData.species);
+          }
+        });
+      });
+    }
+
+    async function fetchJson(url) {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Request failed: ${response.status}`);
+      }
+      return response.json();
+    }
+
+    async function fetchPokemonDetails(id) {
+      if (!pokemonCache.has(id)) {
+        pokemonCache.set(id, fetchJson(`https://pokeapi.co/api/v2/pokemon/${id}`));
+      }
+      if (!speciesCache.has(id)) {
+        speciesCache.set(id, fetchJson(`https://pokeapi.co/api/v2/pokemon-species/${id}`));
+      }
+      return Promise.all([pokemonCache.get(id), speciesCache.get(id)]);
+    }
+
+    async function showOverlayInfo(id) {
+      overlayInfo.classList.add('is-visible');
+      overlayInfo.innerHTML = `<div class="status">${t('loading')}</div>`;
+
+      try {
+        const [pokemon, species] = await fetchPokemonDetails(id);
+        if (currentPokemonId !== id) {
+          return;
+        }
+        renderOverlayInfo(pokemon, species);
+      } catch (error) {
+        if (currentPokemonId !== id) {
+          return;
+        }
+        overlayInfo.innerHTML = `<div class="status">${t('error')}</div>`;
+        console.error('Failed to load Pokemon info', error);
+      }
+    }
+
+    function openOverlay(id, pokemonName) {
+      currentPokemonId = id;
+      currentPokemonName = pokemonName;
+      kleurplaatMode = false;
+      overlayImg.src = imageUrl(id);
+      overlayImg.alt = pokemonName;
+      applyKleurplaatMode();
+      overlay.classList.add('is-open');
+      overlay.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      showOverlayInfo(id);
+    }
+
+    function closeOverlay() {
+      overlay.classList.remove('is-open', 'kleurplaat-mode');
+      kleurplaatMode = false;
+      applyKleurplaatMode();
+      overlay.setAttribute('aria-hidden', 'true');
+      overlayInfo.classList.remove('is-visible');
+      overlayInfo.innerHTML = `<div class="status">${t('loading')}</div>`;
+      currentOverlayData = null;
+      document.body.style.overflow = '';
+    }
+
+    function runSelfTests() {
+      console.assert(imageUrl(1).endsWith('/001.png'), 'imageUrl should zero-pad to 3 digits');
+      console.assert(imageUrl(25).endsWith('/025.png'), 'imageUrl should handle two-digit ids');
+      console.assert(imageUrl(1025).endsWith('/1025.png'), 'imageUrl should keep four-digit ids');
+      console.assert(cryUrl(25).endsWith('/25.ogg'), 'cryUrl should build cry file url');
+      console.assert(normalizeText('hello\nworld') === 'hello world', 'normalizeText should remove line breaks');
+      console.assert(capitalize('pikachu') === 'Pikachu', 'capitalize should uppercase the first letter');
+      console.assert(getLocalizedFlavorText({ flavor_text_entries: [] }, 'en') === uiText.en.noPokedex, 'missing EN flavor text should use fallback');
+      console.assert(getLocalizedGenus({ genera: [] }, 'nl') === uiText.en.unknownPokemon, 'missing NL genus should fall back to EN fallback');
+      console.assert(t('type') === uiText[currentLanguage].type, 'translation helper should return current language value');
+      console.assert(renderLanguageToggle().includes('data-lang="en"'), 'language toggle should contain EN button');
+      console.assert(renderLanguageToggle().includes('data-lang="nl"'), 'language toggle should contain NL button');
+
+      kleurplaatMode = false;
+      applyKleurplaatMode();
+      console.assert(!overlay.classList.contains('kleurplaat-mode'), 'normal mode should not apply kleurplaat class');
+
+      kleurplaatMode = true;
+      applyKleurplaatMode();
+      console.assert(overlay.classList.contains('kleurplaat-mode'), 'kleurplaat mode should apply class');
+
+      kleurplaatMode = false;
+      applyKleurplaatMode();
+    }
+
+    async function loadPokemon() {
+      const data = await fetchJson('https://pokeapi.co/api/v2/pokemon?limit=1025');
+
+      regions.forEach((region) => {
+        const section = document.createElement('section');
+        section.className = 'region';
+
+        const title = document.createElement('h2');
+        title.textContent = region.name;
+
+        const grid = document.createElement('div');
+        grid.className = 'grid';
+
+        for (let i = region.start; i <= region.end; i += 1) {
+          const pokemon = data.results[i - 1];
+          if (!pokemon) {
+            continue;
+          }
+
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.dataset.name = pokemon.name.toLowerCase();
+          card.dataset.number = String(i);
+
+          const img = document.createElement('img');
+          img.src = imageUrl(i);
+          img.alt = pokemon.name;
+          img.setAttribute('loading', 'lazy');
+
+          const pokemonNameEl = document.createElement('div');
+          pokemonNameEl.className = 'name';
+          pokemonNameEl.textContent = `${i}. ${pokemon.name}`;
+
+          card.appendChild(img);
+          card.appendChild(pokemonNameEl);
+          card.addEventListener('click', () => openOverlay(i, pokemon.name));
+          grid.appendChild(card);
+        }
+
+        section.appendChild(title);
+        section.appendChild(grid);
+        container.appendChild(section);
+      });
+    }
+
+    searchBox.addEventListener('input', () => {
+      const query = searchBox.value.trim().toLowerCase();
+      const cards = document.querySelectorAll('.card');
+      const regionElements = document.querySelectorAll('.region');
+
+      cards.forEach((card) => {
+        const matches = !query || card.dataset.name.includes(query) || card.dataset.number.includes(query);
+        card.style.display = matches ? '' : 'none';
+      });
+
+      regionElements.forEach((region) => {
+        const cardsInRegion = region.querySelectorAll('.card');
+        const visibleCards = Array.from(cardsInRegion).filter((card) => card.style.display !== 'none');
+        region.style.display = visibleCards.length > 0 ? '' : 'none';
+      });
+    });
+
+    overlayColoring.addEventListener('click', (event) => {
+      event.stopPropagation();
+      kleurplaatMode = !kleurplaatMode;
+      applyKleurplaatMode();
+    });
+
+    overlaySound.addEventListener('click', (event) => {
+      event.stopPropagation();
+      if (!currentPokemonId) {
+        return;
+      }
+
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+      }
+
+      currentAudio = new Audio(cryUrl(currentPokemonId));
+      currentAudio.play().catch(() => {
+        console.log('No sound available for', currentPokemonName);
+      });
+    });
+
+    overlayPrint.addEventListener('click', (event) => {
+      event.stopPropagation();
+      document.body.classList.add('overlay-printing');
+      window.print();
+    });
+
+    window.addEventListener('afterprint', () => {
+      document.body.classList.remove('overlay-printing');
+    });
+
+    closeBtn.addEventListener('click', (event) => {
+      event.stopPropagation();
+      closeOverlay();
+    });
+
+    overlay.addEventListener('click', (event) => {
+      if (event.target === overlay) {
+        closeOverlay();
+      }
+    });
+
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && overlay.classList.contains('is-open')) {
+        closeOverlay();
+      }
+    });
+
+    searchBox.placeholder = t('searchPlaceholder');
+    runSelfTests();
+    loadPokemon();
+  </script>
+</body>
+</html>
