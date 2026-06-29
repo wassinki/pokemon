@@ -631,7 +631,7 @@
     }
 
     function imageUrl(id) {
-      return `https://raw.githubusercontent.com/HybridShivam/Pokemon/master/assets/images/${String(id).padStart(3, '0')}.png`;
+      return `https://raw.githubusercontent.com/HybridShivam/Pokemon/master/assets/images/${String(id).padStart(4, '0')}.png`;
     }
 
     function cryUrl(id) {
@@ -1168,8 +1168,8 @@
     }
 
     function runSelfTests() {
-      console.assert(imageUrl(1).endsWith('/001.png'), 'imageUrl should zero-pad to 3 digits');
-      console.assert(imageUrl(25).endsWith('/025.png'), 'imageUrl should handle two-digit ids');
+      console.assert(imageUrl(1).endsWith('/0001.png'), 'imageUrl should zero-pad to 4 digits');
+      console.assert(imageUrl(25).endsWith('/0025.png'), 'imageUrl should handle two-digit ids');
       console.assert(imageUrl(1025).endsWith('/1025.png'), 'imageUrl should keep four-digit ids');
       console.assert(cryUrl(25).endsWith('/25.ogg'), 'cryUrl should build cry file url');
       console.assert(normalizeText('hello\nworld') === 'hello world', 'normalizeText should remove line breaks');
