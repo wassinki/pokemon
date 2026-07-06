@@ -1,6 +1,6 @@
 # Pokemon Region Overview
 
-This project is a lightweight single-page HTML app that shows a full Pokemon overview grouped by region. Users can browse the Pokedex, search for a Pokemon, open a full-screen detail view, switch to a coloring-page style image, play the Pokemon cry, and print the selected Pokemon.
+This project is a lightweight single-page HTML app that shows a full Pokemon overview grouped by region. Users can browse the Pokedex, search for a Pokemon, open a full-screen detail view, create coloring pages and Perler bead patterns from the selected Pokemon, view its evolution chain, hear the Pokemon cry, and print the selected Pokemon.
 
 ## Project Context
 
@@ -20,8 +20,10 @@ The latest published version of the page is available here:
 - Opens a full-screen overlay with:
   basic Pokemon information, flavor text, type, height, weight, color, shape, habitat, base happiness, and capture rate.
 - Supports English and Dutch text in the detail panel.
-- Offers a coloring mode that turns the image into a print-friendly black-and-white plate.
-- Plays the Pokemon sound effect when available.
+- Creates coloring pages by turning the image into a print-friendly black-and-white plate.
+- Creates Perler bead patterns from the selected Pokemon image.
+- Shows the Pokemon evolution chain when available.
+- Plays the Pokemon cry when available.
 - Prints the currently opened Pokemon view.
 
 ## Project Structure
@@ -60,7 +62,7 @@ Because of this, an internet connection is required for the full experience.
 2. Browse Pokemon by region or use the search field.
 3. Click a Pokemon card.
 4. In the full-screen view you can:
-   switch language, toggle coloring mode, play sound, print, or close the overlay.
+   switch language, create a coloring page, create a Perler bead pattern, view evolutions, hear the Pokemon cry, print, or close the overlay.
 
 ## Notes
 
