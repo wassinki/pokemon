@@ -1676,6 +1676,105 @@
       font-size: 14px;
     }
 
+    .settings-theme-label {
+      margin-top: 20px !important;
+    }
+
+    .settings-themes {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .theme-choice {
+      min-height: 72px;
+      border: 3px solid #070b14;
+      border-radius: 13px;
+      padding: 7px;
+      color: #071329;
+      background: #f8fbff;
+      box-shadow: 3px 3px 0 #070b14;
+      cursor: pointer;
+      font: 800 12px Arial, sans-serif;
+    }
+
+    .theme-choice.is-active {
+      outline: 3px solid #e44747;
+      outline-offset: 2px;
+    }
+
+    .theme-preview {
+      position: relative;
+      display: block;
+      height: 28px;
+      margin-bottom: 5px;
+      overflow: hidden;
+      border: 2px solid #071329;
+      border-radius: 7px;
+      background: #edf2f3;
+    }
+
+    .theme-preview::before,
+    .theme-preview::after {
+      content: '';
+      position: absolute;
+      border-radius: 99px;
+    }
+
+    .theme-preview::before { top: 5px; left: 5px; width: 15px; height: 15px; border: 3px solid #071329; background: #3fa9e8; }
+    .theme-preview::after { right: 7px; bottom: 5px; width: 25px; height: 7px; background: #df3039; }
+    .theme-preview-rotom { background: #062941; }
+    .theme-preview-rotom::before { border-color: #ffeff0; background: #ff4e5f; box-shadow: 0 0 8px #39dcff; }
+    .theme-preview-rotom::after { background: #34d9ff; }
+    .theme-preview-pikachu { background: #ffe970; }
+    .theme-preview-pikachu::before { background: #f74740; }
+    .theme-preview-pikachu::after { background: #76502d; }
+    .theme-preview-cozy { background: #f1ddbe; }
+    .theme-preview-cozy::before { background: #a6c78c; }
+    .theme-preview-cozy::after { background: #b86a5a; }
+
+    /* Themes only restyle the main Pokédex overview. */
+    .pokedex-shell.theme-rotom {
+      border-color: #ff4e5f;
+      background: linear-gradient(145deg, #082d47, #0d5577);
+      box-shadow: 0 0 0 4px #030810, 0 0 26px rgba(55, 217, 255, 0.7), 10px 12px 0 #030810;
+    }
+    .pokedex-shell.theme-rotom .page-header { border-color: #ffedf0; background: linear-gradient(115deg, #e93f51, #ff6a59); box-shadow: 6px 6px 0 #030810; }
+    .pokedex-shell.theme-rotom .page-header::before { background: #4ee5ff; box-shadow: inset 0 0 0 7px #dbfbff, 0 0 0 3px #ffeff0, 0 0 15px #4ee5ff; }
+    .pokedex-shell.theme-rotom h2 { border-color: #d9faff; background: linear-gradient(120deg, #05577d, #1299c8); box-shadow: 4px 4px 0 #030810; }
+    .pokedex-shell.theme-rotom .grid { border-color: #36c8f0; background: radial-gradient(circle at top right, rgba(255, 78, 95, 0.32), transparent 34%), #08263b; box-shadow: inset 0 1px 0 rgba(198, 248, 255, 0.28), 0 10px 24px rgba(0, 0, 0, 0.3); }
+    .pokedex-shell.theme-rotom .card { border-color: #329cc1; color: #edfaff; background: linear-gradient(150deg, #103a54, #0b2638); box-shadow: 0 5px 14px rgba(0, 0, 0, 0.3); }
+    .pokedex-shell.theme-rotom .card::before { background: rgba(255, 84, 101, 0.45); }
+    .pokedex-shell.theme-rotom .card:hover, .pokedex-shell.theme-rotom .card:focus-within { border-color: #ff7c87; background: linear-gradient(150deg, #164d6b, #0b2638); box-shadow: 0 0 17px rgba(62, 222, 255, 0.52); }
+    .pokedex-shell.theme-rotom .name { color: #e9fbff; }
+    .pokedex-shell.theme-rotom #searchBox { color: #e7fbff; border-color: #d9faff; background: #0a3c57; box-shadow: inset 0 0 0 3px #126f96, 4px 4px 0 #030810; }
+    .pokedex-shell.theme-rotom .page-footer { border-color: #d9faff; background: #071c2b; box-shadow: 5px 5px 0 #ff4e5f; }
+
+    .pokedex-shell.theme-pikachu { border-color: #7a512e; background: #ffe45d; box-shadow: 0 0 0 4px #56391f, 10px 12px 0 #56391f; }
+    .pokedex-shell.theme-pikachu .page-header { border-color: #56391f; background: linear-gradient(115deg, #ffd62e, #ffeb79); box-shadow: 6px 6px 0 #56391f; }
+    .pokedex-shell.theme-pikachu h1 { color: #56391f; text-shadow: 2px 2px 0 #fff8d5; }
+    .pokedex-shell.theme-pikachu .page-header::before { background: #ed5347; box-shadow: inset 0 0 0 7px #fff0a5, 0 0 0 3px #56391f; }
+    .pokedex-shell.theme-pikachu h2 { border-color: #56391f; color: #fff9db; background: #76502d; box-shadow: 4px 4px 0 #56391f; }
+    .pokedex-shell.theme-pikachu .grid { border-color: #bd913b; background: radial-gradient(circle at top right, rgba(255, 103, 73, 0.24), transparent 34%), #fff5bd; }
+    .pokedex-shell.theme-pikachu .card { border-color: #d4a54a; background: linear-gradient(150deg, #fffef1, #ffefa1); }
+    .pokedex-shell.theme-pikachu .card::before { background: rgba(237, 83, 71, 0.25); }
+    .pokedex-shell.theme-pikachu .card:hover, .pokedex-shell.theme-pikachu .card:focus-within { border-color: #ed5347; background: linear-gradient(150deg, #fffef1, #ffe184); box-shadow: 0 12px 22px rgba(180, 90, 37, 0.24); }
+    .pokedex-shell.theme-pikachu .name { color: #5e4228; }
+    .pokedex-shell.theme-pikachu #searchBox { color: #56391f; border-color: #56391f; background: #fff8cf; box-shadow: inset 0 0 0 3px #fff, 4px 4px 0 #56391f; }
+    .pokedex-shell.theme-pikachu .page-footer { border-color: #56391f; color: #fff9dc; background: #76502d; box-shadow: 5px 5px 0 #ed5347; }
+
+    .pokedex-shell.theme-cozy { border-color: #7b5445; background: #ead5b8; box-shadow: 0 0 0 4px #49362f, 10px 12px 0 #49362f; }
+    .pokedex-shell.theme-cozy .page-header { border-color: #49362f; background: linear-gradient(115deg, #bb7563, #d69979); box-shadow: 6px 6px 0 #49362f; }
+    .pokedex-shell.theme-cozy .page-header::before { background: #a9c98d; box-shadow: inset 0 0 0 7px #eff7df, 0 0 0 3px #fff7e9; }
+    .pokedex-shell.theme-cozy h2 { border-color: #49362f; background: #739266; box-shadow: 4px 4px 0 #49362f; }
+    .pokedex-shell.theme-cozy .grid { border-color: #caa987; background: radial-gradient(circle at top right, rgba(170, 199, 140, 0.32), transparent 34%), #fff6e7; }
+    .pokedex-shell.theme-cozy .card { border-color: #d5b99b; background: linear-gradient(150deg, #fffdf8, #f3e5cf); box-shadow: 0 5px 14px rgba(91, 66, 52, 0.14); }
+    .pokedex-shell.theme-cozy .card::before { background: rgba(184, 106, 90, 0.22); }
+    .pokedex-shell.theme-cozy .card:hover, .pokedex-shell.theme-cozy .card:focus-within { border-color: #b86a5a; background: linear-gradient(150deg, #fffdf8, #f0d8b8); box-shadow: 0 12px 22px rgba(123, 84, 69, 0.2); }
+    .pokedex-shell.theme-cozy .name { color: #694b3d; }
+    .pokedex-shell.theme-cozy #searchBox { color: #5a4036; border-color: #7b5445; background: #fff7e9; box-shadow: inset 0 0 0 3px #fff, 4px 4px 0 #49362f; }
+    .pokedex-shell.theme-cozy .page-footer { border-color: #49362f; background: #66483c; box-shadow: 5px 5px 0 #a9c98d; }
+
     .settings-lang-btn {
       min-height: 51px;
       border: 3px solid #070b14;
@@ -1981,7 +2080,7 @@
     </div>
   </section>
 
-  <main class="pokedex-shell">
+  <main class="pokedex-shell theme-classic">
     <div class="page-header">
       <div class="page-controls">
         <button class="settings-btn" id="settingsBtn" type="button" aria-label="Settings" title="Settings">⚙️</button>
@@ -2022,6 +2121,13 @@
       <div class="settings-language" id="settingsLanguageToggle">
         <button class="settings-lang-btn" data-lang="en" type="button">🇬🇧 English</button>
         <button class="settings-lang-btn" data-lang="nl" type="button">🇳🇱 Nederlands</button>
+      </div>
+      <p class="settings-theme-label" id="settingsThemeLabel">Theme</p>
+      <div class="settings-themes" id="settingsThemeToggle">
+        <button class="theme-choice" data-theme="classic" type="button"><span class="theme-preview"></span><span data-theme-name="classic">Classic</span></button>
+        <button class="theme-choice" data-theme="rotom" type="button"><span class="theme-preview theme-preview-rotom"></span><span data-theme-name="rotom">Rotom Phone</span></button>
+        <button class="theme-choice" data-theme="pikachu" type="button"><span class="theme-preview theme-preview-pikachu"></span><span data-theme-name="pikachu">Pikachu</span></button>
+        <button class="theme-choice" data-theme="cozy" type="button"><span class="theme-preview theme-preview-cozy"></span><span data-theme-name="cozy">Cozy</span></button>
       </div>
       <div class="settings-narration">
         <button class="page-narration-toggle" id="pageNarrationToggle" aria-label="Narration off" title="Narration off" hidden>🗣️ Narration off</button>
@@ -2142,6 +2248,11 @@
         settings: 'Settings',
         language: 'Language',
         settingsClose: 'Close settings',
+        theme: 'Theme',
+        themeClassic: 'Classic',
+        themeRotom: 'Rotom Phone',
+        themePikachu: 'Pikachu',
+        themeCozy: 'Cozy',
         searchPlaceholder: 'Search Pokémon...',
         photoFinderTitle: 'Identify a Pokémon from a photo',
         photoFinderNote: 'No key needed. Take a photo and the Pokédex compares it with official artwork.',
@@ -2222,6 +2333,11 @@
         settings: 'Instellingen',
         language: 'Taal',
         settingsClose: 'Sluit instellingen',
+        theme: 'Thema',
+        themeClassic: 'Standaard',
+        themeRotom: 'Rotom Phone',
+        themePikachu: 'Pikachu',
+        themeCozy: 'Knus',
         searchPlaceholder: 'Zoek Pokémon...',
         photoFinderTitle: 'Pokémon herkennen met een foto',
         photoFinderNote: 'Geen sleutel nodig. Deze proef vergelijkt een plaatje met officiële Pokédex-afbeeldingen.',
@@ -2241,6 +2357,7 @@
     };
 
     const container = document.getElementById('container');
+    const pokedexShell = document.querySelector('.pokedex-shell');
     const searchBox = document.getElementById('searchBox');
     const photoCameraStart = document.getElementById('photoCameraStart');
     const photoCamera = document.getElementById('photoCamera');
@@ -2252,6 +2369,8 @@
     const settingsTitle = document.getElementById('settingsTitle');
     const settingsLanguageLabel = document.getElementById('settingsLanguageLabel');
     const settingsLanguageToggle = document.getElementById('settingsLanguageToggle');
+    const settingsThemeLabel = document.getElementById('settingsThemeLabel');
+    const settingsThemeToggle = document.getElementById('settingsThemeToggle');
     const pageTitle = document.getElementById('pageTitle');
     const overlay = document.getElementById('overlay');
     const overlayImg = document.getElementById('overlayImg');
@@ -2284,6 +2403,7 @@
     let currentPokemonName = '';
     let overlayMode = 'normal';
     let currentLanguage = 'en';
+    let currentTheme = 'classic';
     let currentOverlayData = null;
     let activePerlerRenderId = 0;
     let currentSpecialFormIndex = 0;
@@ -3440,11 +3560,31 @@
       settingsBtn.title = t('settings');
       settingsTitle.textContent = t('settings');
       settingsLanguageLabel.textContent = t('language');
+      settingsThemeLabel.textContent = t('theme');
       settingsClose.setAttribute('aria-label', t('settingsClose'));
       settingsClose.title = t('settingsClose');
       document.querySelectorAll('.settings-lang-btn').forEach((button) => {
         button.classList.toggle('is-active', button.dataset.lang === currentLanguage);
       });
+      document.querySelectorAll('[data-theme-name]').forEach((label) => {
+        label.textContent = t(`theme${capitalize(label.dataset.themeName)}`);
+      });
+      document.querySelectorAll('.theme-choice').forEach((button) => {
+        button.classList.toggle('is-active', button.dataset.theme === currentTheme);
+      });
+    }
+
+    function setTheme(theme) {
+      const supportedThemes = ['classic', 'rotom', 'pikachu', 'cozy'];
+      currentTheme = supportedThemes.includes(theme) ? theme : 'classic';
+      pokedexShell.classList.remove(...supportedThemes.map((name) => `theme-${name}`));
+      pokedexShell.classList.add(`theme-${currentTheme}`);
+      try {
+        localStorage.setItem('pokedexTheme', currentTheme);
+      } catch (error) {
+        console.warn('Theme preference could not be saved', error);
+      }
+      syncSettingsText();
     }
 
     function syncPhotoFinderText() {
@@ -3999,6 +4139,14 @@
       settingsBtn.focus();
     });
 
+    settingsThemeToggle.addEventListener('click', (event) => {
+      const button = event.target.closest('.theme-choice');
+      if (!button) {
+        return;
+      }
+      setTheme(button.dataset.theme);
+    });
+
     overlayColoring.addEventListener('click', (event) => {
       event.stopPropagation();
       overlayMode = overlayMode === 'coloring' ? 'normal' : 'coloring';
@@ -4151,6 +4299,15 @@
     searchBox.placeholder = t('searchPlaceholder');
     updateNarrationButton();
     syncPhotoFinderText();
+    try {
+      const savedTheme = localStorage.getItem('pokedexTheme');
+      if (savedTheme) {
+        currentTheme = savedTheme;
+      }
+    } catch (error) {
+      console.warn('Theme preference could not be loaded', error);
+    }
+    setTheme(currentTheme);
     syncSettingsText();
     runSelfTests();
     loadPokemon();
