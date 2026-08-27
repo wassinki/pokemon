@@ -2591,6 +2591,7 @@
         photoCameraError: 'Camera could not be opened. Allow camera access in your browser settings.',
         photoChooseFile: 'Choose a photo first.',
         photoLoading: 'Comparing with Pokédex artwork…',
+        photoRefining: 'Checking the best matches more closely…',
         photoFound: 'Found: ',
         photoNoMatch: 'No close match was found. Try official artwork or a clearer screenshot.',
         photoError: 'Comparison failed. Check your internet connection.',
@@ -2685,6 +2686,7 @@
         photoCameraError: 'De camera kon niet worden geopend. Geef cameratoegang in de browserinstellingen.',
         photoChooseFile: 'Kies eerst een foto.',
         photoLoading: 'Met Pokédex-afbeeldingen vergelijken…',
+        photoRefining: 'Beste overeenkomsten nauwkeuriger bekijken…',
         photoFound: 'Gevonden: ',
         photoNoMatch: 'Geen goede overeenkomst. Probeer officiële art of een duidelijkere screenshot.',
         photoError: 'Vergelijken mislukt. Controleer je internetverbinding.',
@@ -2757,6 +2759,7 @@
     const formCache = new Map();
     const moveCache = new Map();
     const artworkSignatureCache = new Map();
+    const artworkDetailSignatureCache = new Map();
     const dutchFlavorTranslationCache = new Map();
     let artworkSignatureLoadPromise = null;
     let artworkSignaturesReady = false;
@@ -4088,6 +4091,107 @@
       return dot / Math.sqrt(firstLength * secondLength || 1);
     }
 
+    function imageDetailSignature(image) {
+      const canvas = document.createElement('canvas');
+      const size = 40;
+      canvas.width = size;
+      canvas.height = size;
+      const context = canvas.getContext('2d', { willReadFrequently: true });
+      const imageWidth = image.width || size;
+      const imageHeight = image.height || size;
+      const cropSize = Math.min(imageWidth, imageHeight);
+      context.drawImage(image, (imageWidth - cropSize) / 2, (imageHeight - cropSize) / 2, cropSize, cropSize, 0, 0, size, size);
+      const pixels = context.getImageData(0, 0, size, size).data;
+      const borderPixels = [];
+      for (let y = 0; y < size; y += 1) {
+        for (let x = 0; x < size; x += 1) {
+          if (x !== 0 && y !== 0 && x !== size - 1 && y !== size - 1) continue;
+          const index = (y * size + x) * 4;
+          if (pixels[index + 3] >= 100) borderPixels.push([pixels[index], pixels[index + 1], pixels[index + 2]]);
+        }
+      }
+      const background = borderPixels.length
+        ? borderPixels.reduce((sum, value) => [sum[0] + value[0], sum[1] + value[1], sum[2] + value[2]], [0, 0, 0]).map((value) => value / borderPixels.length)
+        : null;
+      const borderVariation = background
+        ? borderPixels.reduce((sum, value) => sum + Math.hypot(value[0] - background[0], value[1] - background[1], value[2] - background[2]), 0) / borderPixels.length
+        : Infinity;
+      const hasFlatBackground = borderVariation < 34;
+      const signature = Array(72).fill(0);
+      let includedPixels = 0;
+      for (let y = 0; y < size; y += 1) {
+        for (let x = 0; x < size; x += 1) {
+          const index = (y * size + x) * 4;
+          const red = pixels[index];
+          const green = pixels[index + 1];
+          const blue = pixels[index + 2];
+          if (pixels[index + 3] < 100 || (red > 242 && green > 242 && blue > 242)) continue;
+          if (hasFlatBackground && Math.hypot(red - background[0], green - background[1], blue - background[2]) < 28) continue;
+          const max = Math.max(red, green, blue) / 255;
+          const min = Math.min(red, green, blue) / 255;
+          const chroma = max - min;
+          const cell = (y < size / 2 ? 0 : 2) + (x < size / 2 ? 0 : 1);
+          let bucket;
+          if (chroma < 0.12) {
+            bucket = 15 + Math.min(2, Math.floor(max * 3));
+          } else {
+            let hue = red >= green && red >= blue ? (green - blue) / chroma : (green >= blue ? 2 + (blue - red) / chroma : 4 + (red - green) / chroma);
+            hue = (hue * 60 + 360) % 360;
+            bucket = Math.min(14, Math.floor(hue / 24));
+          }
+          signature[cell * 18 + bucket] += 1;
+          includedPixels += 1;
+        }
+      }
+      if (!includedPixels) throw new Error('No usable picture pixels');
+      return signature.map((value) => value / includedPixels);
+    }
+
+    function hydrateArtworkDetailSignatures() {
+      if (artworkDetailSignatureCache.size) return;
+      try {
+        const saved = JSON.parse(window.localStorage.getItem('pokemonArtworkDetailSignaturesV1') || '{}');
+        Object.entries(saved).forEach(([id, signature]) => artworkDetailSignatureCache.set(Number(id), signature));
+      } catch (error) {
+        console.warn('Detailed artwork signature cache cannot be read', error);
+      }
+    }
+
+    async function getArtworkDetailSignature(id) {
+      hydrateArtworkDetailSignatures();
+      if (artworkDetailSignatureCache.has(id)) return artworkDetailSignatureCache.get(id);
+      const response = await fetch(artworkUrl(id));
+      if (!response.ok) throw new Error(`Artwork ${id} failed`);
+      const bitmap = await createImageBitmap(await response.blob());
+      const signature = imageDetailSignature(bitmap);
+      bitmap.close();
+      artworkDetailSignatureCache.set(id, signature);
+      return signature;
+    }
+
+    async function refinePhotoMatches(candidates, uploadedDetailSignature) {
+      const results = [];
+      const pending = candidates.slice();
+      const workers = Array.from({ length: Math.min(10, pending.length) }, async () => {
+        while (pending.length) {
+          const candidate = pending.shift();
+          try {
+            const detailSignature = await getArtworkDetailSignature(candidate.id);
+            results.push({ ...candidate, score: candidate.score * 0.62 + signatureSimilarity(uploadedDetailSignature, detailSignature) * 0.38 });
+          } catch (error) {
+            results.push(candidate);
+          }
+        }
+      });
+      await Promise.all(workers);
+      try {
+        window.localStorage.setItem('pokemonArtworkDetailSignaturesV1', JSON.stringify(Object.fromEntries(artworkDetailSignatureCache)));
+      } catch (error) {
+        console.warn('Detailed artwork signature cache cannot be saved', error);
+      }
+      return results.sort((first, second) => second.score - first.score);
+    }
+
     async function getArtworkSignature(id) {
       if (artworkSignatureCache.has(id)) return artworkSignatureCache.get(id);
       const response = await fetch(artworkUrl(id));
@@ -4150,12 +4254,15 @@
       try {
         const uploadedImage = await createImageBitmap(file);
         const uploadedSignature = imageSignature(uploadedImage);
+        const uploadedDetailSignature = imageDetailSignature(uploadedImage);
         uploadedImage.close();
         await loadArtworkSignatures(true);
-        const matches = Array.from(artworkSignatureCache.entries())
+        const firstMatches = Array.from(artworkSignatureCache.entries())
           .map(([id, signature]) => ({ id, score: signatureSimilarity(uploadedSignature, signature) }))
           .sort((first, second) => second.score - first.score)
-          .slice(0, 3);
+          .slice(0, 32);
+        photoStatus.textContent = t('photoRefining');
+        const matches = (await refinePhotoMatches(firstMatches, uploadedDetailSignature)).slice(0, 3);
         const pokemon = await Promise.all(matches.map(({ id }) => fetchJson(`https://pokeapi.co/api/v2/pokemon/${id}`)));
         photoStatus.innerHTML = `${t('photoMatches')}${pokemon.map((entry) => `<button class="photo-candidate" type="button" data-pokemon-id="${entry.id}" data-pokemon-name="${entry.name}">${capitalize(entry.name)}</button>`).join('')}`;
         photoStatus.querySelectorAll('.photo-candidate').forEach((button) => {
