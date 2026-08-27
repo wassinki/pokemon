@@ -1575,32 +1575,102 @@
       text-transform: capitalize;
     }
 
-    .language-toggle {
-      display: flex;
-      gap: 8px;
-      justify-content: center;
-    }
-
     .page-controls {
       display: flex;
       align-items: center;
       gap: 10px;
     }
 
-    .lang-btn {
+    .settings-btn {
       border: 2px solid #070b14;
-      background: #f8fbff;
-      border-radius: 999px;
-      padding: 6px 10px;
-      font-size: 13px;
+      background: linear-gradient(145deg, #f8fbff, #b8e8ff);
+      border-radius: 50%;
+      width: 38px;
+      height: 38px;
+      padding: 0;
+      font-size: 20px;
       cursor: pointer;
       box-shadow: 2px 2px 0 #070b14;
+      display: inline-grid;
+      place-items: center;
     }
 
-    .lang-btn.is-active {
-      background: #1b6fa8;
-      color: #f8fbff;
-      border-color: #070b14;
+    .settings-btn:hover {
+      transform: rotate(20deg);
+    }
+
+    .settings-panel {
+      position: fixed;
+      inset: 0;
+      z-index: 12000;
+      display: grid;
+      place-items: center;
+      padding: 22px;
+      background: rgba(3, 13, 31, 0.62);
+      backdrop-filter: blur(5px);
+    }
+
+    .settings-panel[hidden] {
+      display: none;
+    }
+
+    .settings-card {
+      position: relative;
+      width: min(100%, 350px);
+      padding: 27px 24px 24px;
+      border: 4px solid #070b14;
+      border-radius: 24px;
+      color: #071329;
+      background: linear-gradient(145deg, #f8fcff, #9de5ff);
+      box-shadow: 9px 9px 0 #070b14;
+      text-align: center;
+    }
+
+    .settings-card h2 {
+      margin: 0 36px 8px 0;
+      font-size: 25px;
+    }
+
+    .settings-card p {
+      margin: 0 0 15px;
+      font-weight: 700;
+    }
+
+    .settings-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 34px;
+      height: 34px;
+      border: 2px solid #070b14;
+      border-radius: 50%;
+      color: #fff;
+      background: #e44747;
+      box-shadow: 2px 2px 0 #070b14;
+      cursor: pointer;
+      font-weight: 900;
+    }
+
+    .settings-language {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .settings-lang-btn {
+      min-height: 51px;
+      border: 3px solid #070b14;
+      border-radius: 13px;
+      color: #071329;
+      background: #f8fbff;
+      box-shadow: 3px 3px 0 #070b14;
+      cursor: pointer;
+      font: 800 14px Arial, sans-serif;
+    }
+
+    .settings-lang-btn.is-active {
+      color: #fff;
+      background: #176da5;
     }
 
     .page-narration-toggle {
@@ -1895,10 +1965,7 @@
   <main class="pokedex-shell">
     <div class="page-header">
       <div class="page-controls">
-        <div class="language-toggle" id="pageLanguageToggle" aria-label="Language switch">
-          <button class="lang-btn is-active" data-lang="en" type="button">🇬🇧 EN</button>
-          <button class="lang-btn" data-lang="nl" type="button">🇳🇱 NL</button>
-        </div>
+        <button class="settings-btn" id="settingsBtn" type="button" aria-label="Settings" title="Settings">⚙️</button>
         <button class="page-narration-toggle" id="pageNarrationToggle" aria-label="Stem uit" title="Stem uit" hidden>🗣️ Stem</button>
       </div>
       <h1 id="pageTitle">Full Pokédex by Region</h1>
@@ -1922,6 +1989,18 @@
       </p>
     </footer>
   </main>
+
+  <div class="settings-panel" id="settingsPanel" role="dialog" aria-modal="true" aria-labelledby="settingsTitle" hidden>
+    <div class="settings-card">
+      <button class="settings-close" id="settingsClose" type="button" aria-label="Close settings" title="Close settings">✕</button>
+      <h2 id="settingsTitle">Settings</h2>
+      <p id="settingsLanguageLabel">Language</p>
+      <div class="settings-language" id="settingsLanguageToggle">
+        <button class="settings-lang-btn" data-lang="en" type="button">🇬🇧 English</button>
+        <button class="settings-lang-btn" data-lang="nl" type="button">🇳🇱 Nederlands</button>
+      </div>
+    </div>
+  </div>
 
   <div id="overlay" aria-hidden="true">
     <section class="rotom-phone" aria-label="Rotom Phone Pokédex">
@@ -2033,6 +2112,9 @@
         ultraBeast: 'Ultra Beast',
         nonLegendary: 'Normal',
         unknown: 'Unknown',
+        settings: 'Settings',
+        language: 'Language',
+        settingsClose: 'Close settings',
         searchPlaceholder: 'Search Pokémon...',
         photoFinderTitle: 'Identify a Pokémon from a photo',
         photoFinderNote: 'No key needed. Take a photo and the Pokédex compares it with official artwork.',
@@ -2110,6 +2192,9 @@
         ultraBeast: 'Ultra Beast',
         nonLegendary: 'Normaal',
         unknown: 'Onbekend',
+        settings: 'Instellingen',
+        language: 'Taal',
+        settingsClose: 'Sluit instellingen',
         searchPlaceholder: 'Zoek Pokémon...',
         photoFinderTitle: 'Pokémon herkennen met een foto',
         photoFinderNote: 'Geen sleutel nodig. Deze proef vergelijkt een plaatje met officiële Pokédex-afbeeldingen.',
@@ -2134,7 +2219,12 @@
     const photoCamera = document.getElementById('photoCamera');
     const photoCameraVideo = document.getElementById('photoCameraVideo');
     const photoStatus = document.getElementById('photoStatus');
-    const pageLanguageToggle = document.getElementById('pageLanguageToggle');
+    const settingsBtn = document.getElementById('settingsBtn');
+    const settingsPanel = document.getElementById('settingsPanel');
+    const settingsClose = document.getElementById('settingsClose');
+    const settingsTitle = document.getElementById('settingsTitle');
+    const settingsLanguageLabel = document.getElementById('settingsLanguageLabel');
+    const settingsLanguageToggle = document.getElementById('settingsLanguageToggle');
     const pageTitle = document.getElementById('pageTitle');
     const overlay = document.getElementById('overlay');
     const overlayImg = document.getElementById('overlayImg');
@@ -3320,17 +3410,14 @@
       ].join('');
     }
 
-    function renderLanguageToggle() {
-      return `
-        <div class="language-toggle">
-          <button class="lang-btn ${currentLanguage === 'en' ? 'is-active' : ''}" data-lang="en" type="button">🇬🇧 EN</button>
-          <button class="lang-btn ${currentLanguage === 'nl' ? 'is-active' : ''}" data-lang="nl" type="button">🇳🇱 NL</button>
-        </div>
-      `;
-    }
-
-    function syncLanguageButtons() {
-      document.querySelectorAll('.lang-btn').forEach((button) => {
+    function syncSettingsText() {
+      settingsBtn.setAttribute('aria-label', t('settings'));
+      settingsBtn.title = t('settings');
+      settingsTitle.textContent = t('settings');
+      settingsLanguageLabel.textContent = t('language');
+      settingsClose.setAttribute('aria-label', t('settingsClose'));
+      settingsClose.title = t('settingsClose');
+      document.querySelectorAll('.settings-lang-btn').forEach((button) => {
         button.classList.toggle('is-active', button.dataset.lang === currentLanguage);
       });
     }
@@ -3619,7 +3706,7 @@
       searchBox.placeholder = t('searchPlaceholder');
       pageTitle.textContent = t('appTitle');
       document.title = t('appTitle');
-      syncLanguageButtons();
+      syncSettingsText();
       refreshCardImageFallbacks();
       if (overlay.classList.contains('image-missing')) {
         overlayImageFallback.textContent = t('imageUnavailable');
@@ -3753,8 +3840,8 @@
       console.assert(getLocalizedFlavorText({ flavor_text_entries: [] }, 'en') === uiText.en.noPokedex, 'missing EN flavor text should use fallback');
       console.assert(getLocalizedGenus({ genera: [] }, 'nl') === uiText.en.unknownPokemon, 'missing NL genus should fall back to EN fallback');
       console.assert(t('type') === uiText[currentLanguage].type, 'translation helper should return current language value');
-      console.assert(renderLanguageToggle().includes('data-lang="en"'), 'language toggle should contain EN button');
-      console.assert(renderLanguageToggle().includes('data-lang="nl"'), 'language toggle should contain NL button');
+      console.assert(settingsLanguageToggle.querySelector('[data-lang="en"]'), 'settings should contain EN button');
+      console.assert(settingsLanguageToggle.querySelector('[data-lang="nl"]'), 'settings should contain NL button');
 
       overlayMode = 'normal';
       applyOverlayMode();
@@ -3854,12 +3941,31 @@
     photoCameraStart.addEventListener('click', togglePokemonCamera);
     window.addEventListener('beforeunload', stopPokemonCamera);
 
-    pageLanguageToggle.addEventListener('click', (event) => {
-      const button = event.target.closest('.lang-btn');
+    settingsBtn.addEventListener('click', () => {
+      settingsPanel.hidden = false;
+      settingsClose.focus();
+    });
+
+    settingsClose.addEventListener('click', () => {
+      settingsPanel.hidden = true;
+      settingsBtn.focus();
+    });
+
+    settingsPanel.addEventListener('click', (event) => {
+      if (event.target === settingsPanel) {
+        settingsPanel.hidden = true;
+        settingsBtn.focus();
+      }
+    });
+
+    settingsLanguageToggle.addEventListener('click', (event) => {
+      const button = event.target.closest('.settings-lang-btn');
       if (!button) {
         return;
       }
       setLanguage(button.dataset.lang);
+      settingsPanel.hidden = true;
+      settingsBtn.focus();
     });
 
     overlayColoring.addEventListener('click', (event) => {
@@ -4000,7 +4106,13 @@
     });
 
     window.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && overlay.classList.contains('is-open')) {
+      if (event.key !== 'Escape') {
+        return;
+      }
+      if (!settingsPanel.hidden) {
+        settingsPanel.hidden = true;
+        settingsBtn.focus();
+      } else if (overlay.classList.contains('is-open')) {
         closeOverlay();
       }
     });
@@ -4008,7 +4120,7 @@
     searchBox.placeholder = t('searchPlaceholder');
     updateNarrationButton();
     syncPhotoFinderText();
-    syncLanguageButtons();
+    syncSettingsText();
     runSelfTests();
     loadPokemon();
   </script>
