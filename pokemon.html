@@ -468,9 +468,11 @@
 
     .photo-status { flex: 1; min-width: 180px; color: #fff; font-size: 12px; font-weight: 700; }
     .photo-candidate { margin: 3px 3px 0 0; border: 1px solid #b9f8ff; border-radius: 999px; padding: 4px 7px; color: #07304a; background: #d8faff; font: 800 11px Arial, sans-serif; cursor: pointer; }
-    .photo-camera { display: none; width: min(100%, 360px); margin: 0 auto 16px; border: 3px solid #070b14; border-radius: 14px; background: #071d2c; overflow: hidden; }
+    .photo-camera { position: relative; display: none; width: min(100%, 360px); margin: 0 auto 16px; border: 3px solid #070b14; border-radius: 14px; background: #071d2c; overflow: hidden; }
     .photo-camera.is-visible { display: block; }
     .photo-camera video { display: block; width: 100%; max-height: 280px; object-fit: cover; }
+    .photo-camera-guide { position: absolute; top: 50%; left: 50%; width: 68%; aspect-ratio: 1; border: 3px solid rgba(255, 255, 255, 0.92); border-radius: 14px; box-shadow: 0 0 0 999px rgba(3, 13, 31, 0.3), 0 0 0 2px #071321; transform: translate(-50%, -50%); pointer-events: none; }
+    .photo-camera-guide::after { content: attr(data-label); position: absolute; left: 50%; bottom: 8px; padding: 4px 8px; border: 1px solid #071321; border-radius: 999px; color: #fff; background: rgba(3, 13, 31, 0.78); font: 800 10px Arial, sans-serif; white-space: nowrap; transform: translateX(-50%); }
 
     .region {
       margin-bottom: 30px;
@@ -2405,7 +2407,7 @@
       </button>
     </div>
     <div class="camera-feedback"><span class="photo-status" id="photoStatus" aria-live="polite"></span></div>
-    <div class="photo-camera" id="photoCamera"><video id="photoCameraVideo" autoplay playsinline muted></video></div>
+    <div class="photo-camera" id="photoCamera"><video id="photoCameraVideo" autoplay playsinline muted></video><div class="photo-camera-guide" id="photoCameraGuide" data-label="Center Pokémon"></div></div>
 
     <div id="container"></div>
 
@@ -2587,6 +2589,7 @@
         photoFinderNote: 'No key needed. Take a photo and the Pokédex compares it with official artwork.',
         photoCameraStart: '📷 Open camera',
         photoCameraCapture: 'Take photo',
+        photoCameraGuide: 'Center Pokémon',
         photoCameraLoading: 'Opening camera…',
         photoCameraError: 'Camera could not be opened. Allow camera access in your browser settings.',
         photoChooseFile: 'Choose a photo first.',
@@ -2683,6 +2686,7 @@
         photoFile: 'Foto van een Pokémon',
         photoCameraStart: '📷 Open camera',
         photoCameraCapture: 'Maak foto',
+        photoCameraGuide: 'Zet Pokémon in het vak',
         photoCameraLoading: 'Camera openen…',
         photoCameraError: 'De camera kon niet worden geopend. Geef cameratoegang in de browserinstellingen.',
         photoChooseFile: 'Kies eerst een foto.',
@@ -2703,6 +2707,7 @@
     const photoCameraStart = document.getElementById('photoCameraStart');
     const photoCamera = document.getElementById('photoCamera');
     const photoCameraVideo = document.getElementById('photoCameraVideo');
+    const photoCameraGuide = document.getElementById('photoCameraGuide');
     const photoStatus = document.getElementById('photoStatus');
     const settingsBtn = document.getElementById('settingsBtn');
     const settingsPanel = document.getElementById('settingsPanel');
@@ -3948,6 +3953,7 @@
 
     function syncPhotoFinderText() {
       updateCameraButton();
+      photoCameraGuide.dataset.label = t('photoCameraGuide');
     }
 
     function updateCameraButton() {
@@ -4000,11 +4006,13 @@
     async function capturePokemonCameraPhoto() {
       if (!photoCameraStream || !photoCameraVideo.videoWidth) return;
       const canvas = document.createElement('canvas');
-      const longestSide = Math.max(photoCameraVideo.videoWidth, photoCameraVideo.videoHeight);
-      const scale = Math.min(1, 960 / longestSide);
-      canvas.width = Math.round(photoCameraVideo.videoWidth * scale);
-      canvas.height = Math.round(photoCameraVideo.videoHeight * scale);
-      canvas.getContext('2d').drawImage(photoCameraVideo, 0, 0, canvas.width, canvas.height);
+      const sourceSize = Math.min(photoCameraVideo.videoWidth, photoCameraVideo.videoHeight) * 0.68;
+      const outputSize = Math.round(Math.min(960, sourceSize));
+      const sourceX = (photoCameraVideo.videoWidth - sourceSize) / 2;
+      const sourceY = (photoCameraVideo.videoHeight - sourceSize) / 2;
+      canvas.width = outputSize;
+      canvas.height = outputSize;
+      canvas.getContext('2d').drawImage(photoCameraVideo, sourceX, sourceY, sourceSize, sourceSize, 0, 0, outputSize, outputSize);
       capturedPokemonPhoto = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.92));
       if (!capturedPokemonPhoto) {
         photoStatus.textContent = t('photoError');
