@@ -401,31 +401,15 @@
       box-shadow: inset 0 0 0 3px #e6fcff, 0 0 0 4px #e5353e, 4px 4px 0 #070b14;
     }
 
-    .photo-finder {
-      width: min(720px, 100%);
-      margin: 0 auto 22px;
-      border: 4px solid #070b14;
-      border-radius: 16px;
-      padding: 16px;
-      background: linear-gradient(135deg, #1b6fa8, #35b9de);
-      box-shadow: 5px 5px 0 #070b14;
-    }
+    .search-tools { display: flex; align-items: stretch; gap: 10px; width: min(720px, 100%); margin: 0 auto 20px; }
+    .search-tools #searchBox { flex: 1; min-width: 0; width: auto; margin: 0; }
+    .camera-search-btn { width: 54px; min-width: 54px; border: 4px solid #070b14; border-radius: 12px; color: #fff; background: linear-gradient(145deg, #1298c8, #075477); box-shadow: 4px 4px 0 #070b14; font-size: 23px; cursor: pointer; }
+    .camera-search-btn:disabled { cursor: wait; opacity: 0.72; }
+    .camera-feedback { width: min(720px, 100%); min-height: 0; margin: -10px auto 12px; }
 
-    .photo-finder h2 { margin: 0 0 5px; color: #fff; font-size: 19px; }
-    .photo-finder-note { margin: 0 0 12px; color: #eaffff; font-size: 12px; line-height: 1.4; }
-    .photo-finder-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-    .photo-finder label { display: grid; gap: 5px; color: #fff; font-size: 12px; font-weight: 800; }
-    .photo-finder input { min-width: 0; border: 2px solid #070b14; border-radius: 8px; padding: 8px 9px; color: #070b14; background: #f8fbff; font: 13px Arial, sans-serif; }
-    .photo-file-field { grid-column: 1 / -1; }
-    .photo-finder-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
-    .photo-recognize-btn { border: 3px solid #070b14; border-radius: 999px; padding: 9px 14px; color: #070b14; background: #f8fbff; box-shadow: 3px 3px 0 #070b14; font: 800 13px Arial, sans-serif; cursor: pointer; }
-    .photo-test-btn { color: #f8fbff; background: #07537c; }
-    .photo-recognize-btn:disabled { cursor: wait; opacity: 0.72; }
     .photo-status { flex: 1; min-width: 180px; color: #fff; font-size: 12px; font-weight: 700; }
     .photo-candidate { margin: 3px 3px 0 0; border: 1px solid #b9f8ff; border-radius: 999px; padding: 4px 7px; color: #07304a; background: #d8faff; font: 800 11px Arial, sans-serif; cursor: pointer; }
-    .photo-preview { display: none; width: 92px; height: 92px; margin-top: 12px; border: 3px solid #070b14; border-radius: 12px; object-fit: cover; background: #f8fbff; }
-    .photo-preview.is-visible { display: block; }
-    .photo-camera { display: none; width: min(100%, 360px); margin-top: 12px; border: 3px solid #070b14; border-radius: 14px; background: #071d2c; overflow: hidden; }
+    .photo-camera { display: none; width: min(100%, 360px); margin: 0 auto 16px; border: 3px solid #070b14; border-radius: 14px; background: #071d2c; overflow: hidden; }
     .photo-camera.is-visible { display: block; }
     .photo-camera video { display: block; width: 100%; max-height: 280px; object-fit: cover; }
 
@@ -1810,8 +1794,6 @@
         font-size: 11px;
       }
 
-      .photo-finder-grid { grid-template-columns: 1fr; }
-
       .overlay-toolbar {
         top: 12px;
         right: 12px;
@@ -1921,17 +1903,12 @@
       </div>
       <h1 id="pageTitle">Full Pokédex by Region</h1>
     </div>
-    <input type="text" id="searchBox" placeholder="Search Pokémon...">
-
-    <section class="photo-finder" aria-labelledby="photoFinderTitle">
-      <h2 id="photoFinderTitle">Pokémon herkennen met een foto</h2>
-      <p class="photo-finder-note" id="photoFinderNote">Geen sleutel nodig. Maak een foto en de Pokédex vergelijkt hem met officiële afbeeldingen.</p>
-      <div class="photo-finder-actions">
-        <button class="photo-recognize-btn photo-test-btn" id="photoCameraStart" type="button">📷 Open camera</button>
-        <span class="photo-status" id="photoStatus" aria-live="polite"></span>
-      </div>
-      <div class="photo-camera" id="photoCamera"><video id="photoCameraVideo" autoplay playsinline muted></video></div>
-    </section>
+    <div class="search-tools">
+      <input type="text" id="searchBox" placeholder="Search Pokémon...">
+      <button class="camera-search-btn" id="photoCameraStart" type="button" aria-label="Open camera" title="Open camera">📷</button>
+    </div>
+    <div class="camera-feedback"><span class="photo-status" id="photoStatus" aria-live="polite"></span></div>
+    <div class="photo-camera" id="photoCamera"><video id="photoCameraVideo" autoplay playsinline muted></video></div>
 
     <div id="container"></div>
 
@@ -3359,9 +3336,13 @@
     }
 
     function syncPhotoFinderText() {
-      document.getElementById('photoFinderTitle').textContent = t('photoFinderTitle');
-      document.getElementById('photoFinderNote').textContent = t('photoFinderNote');
-      photoCameraStart.textContent = photoCameraStream ? t('photoCameraCapture') : t('photoCameraStart');
+      updateCameraButton();
+    }
+
+    function updateCameraButton() {
+      photoCameraStart.textContent = '📷';
+      photoCameraStart.setAttribute('aria-label', photoCameraStream ? t('photoCameraCapture') : t('photoCameraStart'));
+      photoCameraStart.title = photoCameraStart.getAttribute('aria-label');
     }
 
     function stopPokemonCamera() {
@@ -3371,7 +3352,7 @@
       photoCameraStream = null;
       photoCameraVideo.srcObject = null;
       photoCamera.classList.remove('is-visible');
-      photoCameraStart.textContent = t('photoCameraStart');
+      updateCameraButton();
     }
 
     async function togglePokemonCamera() {
@@ -3393,7 +3374,7 @@
         photoCameraVideo.srcObject = photoCameraStream;
         await photoCameraVideo.play();
         photoCamera.classList.add('is-visible');
-        photoCameraStart.textContent = t('photoCameraCapture');
+        updateCameraButton();
         photoStatus.textContent = '';
       } catch (error) {
         console.error('Camera could not be opened', error);
