@@ -2592,6 +2592,7 @@
         photoChooseFile: 'Choose a photo first.',
         photoLoading: 'Comparing with Pokédex artwork…',
         photoRefining: 'Checking the best matches more closely…',
+        photoFinalizing: 'Comparing outlines of the best matches…',
         photoFound: 'Found: ',
         photoNoMatch: 'No close match was found. Try official artwork or a clearer screenshot.',
         photoError: 'Comparison failed. Check your internet connection.',
@@ -2687,6 +2688,7 @@
         photoChooseFile: 'Kies eerst een foto.',
         photoLoading: 'Met Pokédex-afbeeldingen vergelijken…',
         photoRefining: 'Beste overeenkomsten nauwkeuriger bekijken…',
+        photoFinalizing: 'Omtrekken van de beste overeenkomsten vergelijken…',
         photoFound: 'Gevonden: ',
         photoNoMatch: 'Geen goede overeenkomst. Probeer officiële art of een duidelijkere screenshot.',
         photoError: 'Vergelijken mislukt. Controleer je internetverbinding.',
@@ -2760,6 +2762,7 @@
     const moveCache = new Map();
     const artworkSignatureCache = new Map();
     const artworkDetailSignatureCache = new Map();
+    const artworkContourSignatureCache = new Map();
     const dutchFlavorTranslationCache = new Map();
     let artworkSignatureLoadPromise = null;
     let artworkSignaturesReady = false;
@@ -4192,6 +4195,112 @@
       return results.sort((first, second) => second.score - first.score);
     }
 
+    function imageContourSignature(image) {
+      const canvas = document.createElement('canvas');
+      const size = 48;
+      canvas.width = size;
+      canvas.height = size;
+      const context = canvas.getContext('2d', { willReadFrequently: true });
+      const imageWidth = image.width || size;
+      const imageHeight = image.height || size;
+      const cropSize = Math.min(imageWidth, imageHeight);
+      context.drawImage(image, (imageWidth - cropSize) / 2, (imageHeight - cropSize) / 2, cropSize, cropSize, 0, 0, size, size);
+      const pixels = context.getImageData(0, 0, size, size).data;
+      const borderPixels = [];
+      for (let y = 0; y < size; y += 1) {
+        for (let x = 0; x < size; x += 1) {
+          if (x !== 0 && y !== 0 && x !== size - 1 && y !== size - 1) continue;
+          const index = (y * size + x) * 4;
+          if (pixels[index + 3] >= 100) borderPixels.push([pixels[index], pixels[index + 1], pixels[index + 2]]);
+        }
+      }
+      const background = borderPixels.length
+        ? borderPixels.reduce((sum, value) => [sum[0] + value[0], sum[1] + value[1], sum[2] + value[2]], [0, 0, 0]).map((value) => value / borderPixels.length)
+        : null;
+      const borderVariation = background
+        ? borderPixels.reduce((sum, value) => sum + Math.hypot(value[0] - background[0], value[1] - background[1], value[2] - background[2]), 0) / borderPixels.length
+        : Infinity;
+      const hasFlatBackground = borderVariation < 34;
+      const foreground = Array(size * size).fill(false);
+      for (let index = 0; index < foreground.length; index += 1) {
+        const pixelIndex = index * 4;
+        if (pixels[pixelIndex + 3] < 100) continue;
+        if (hasFlatBackground && Math.hypot(pixels[pixelIndex] - background[0], pixels[pixelIndex + 1] - background[1], pixels[pixelIndex + 2] - background[2]) < 28) continue;
+        foreground[index] = true;
+      }
+      const signature = Array(16).fill(0);
+      let totalEdge = 0;
+      for (let y = 1; y < size - 1; y += 1) {
+        for (let x = 1; x < size - 1; x += 1) {
+          const index = y * size + x;
+          if (!foreground[index]) continue;
+          const pixelIndex = index * 4;
+          const luminance = (pixels[pixelIndex] * 0.299 + pixels[pixelIndex + 1] * 0.587 + pixels[pixelIndex + 2] * 0.114) / 255;
+          const neighbors = [index - 1, index + 1, index - size, index + size];
+          let edge = 0;
+          neighbors.forEach((neighbor) => {
+            if (!foreground[neighbor]) {
+              edge += 1;
+              return;
+            }
+            const neighborIndex = neighbor * 4;
+            const neighborLuminance = (pixels[neighborIndex] * 0.299 + pixels[neighborIndex + 1] * 0.587 + pixels[neighborIndex + 2] * 0.114) / 255;
+            edge += Math.abs(luminance - neighborLuminance);
+          });
+          const cell = Math.floor(y / (size / 4)) * 4 + Math.floor(x / (size / 4));
+          signature[cell] += edge;
+          totalEdge += edge;
+        }
+      }
+      if (!totalEdge) throw new Error('No usable picture outline');
+      return signature.map((value) => value / totalEdge);
+    }
+
+    function hydrateArtworkContourSignatures() {
+      if (artworkContourSignatureCache.size) return;
+      try {
+        const saved = JSON.parse(window.localStorage.getItem('pokemonArtworkContourSignaturesV1') || '{}');
+        Object.entries(saved).forEach(([id, signature]) => artworkContourSignatureCache.set(Number(id), signature));
+      } catch (error) {
+        console.warn('Artwork contour signature cache cannot be read', error);
+      }
+    }
+
+    async function getArtworkContourSignature(id) {
+      hydrateArtworkContourSignatures();
+      if (artworkContourSignatureCache.has(id)) return artworkContourSignatureCache.get(id);
+      const response = await fetch(artworkUrl(id));
+      if (!response.ok) throw new Error(`Artwork ${id} failed`);
+      const bitmap = await createImageBitmap(await response.blob());
+      const signature = imageContourSignature(bitmap);
+      bitmap.close();
+      artworkContourSignatureCache.set(id, signature);
+      return signature;
+    }
+
+    async function refinePhotoContours(candidates, uploadedContourSignature) {
+      const results = [];
+      const pending = candidates.slice();
+      const workers = Array.from({ length: Math.min(8, pending.length) }, async () => {
+        while (pending.length) {
+          const candidate = pending.shift();
+          try {
+            const contourSignature = await getArtworkContourSignature(candidate.id);
+            results.push({ ...candidate, score: candidate.score * 0.82 + signatureSimilarity(uploadedContourSignature, contourSignature) * 0.18 });
+          } catch (error) {
+            results.push(candidate);
+          }
+        }
+      });
+      await Promise.all(workers);
+      try {
+        window.localStorage.setItem('pokemonArtworkContourSignaturesV1', JSON.stringify(Object.fromEntries(artworkContourSignatureCache)));
+      } catch (error) {
+        console.warn('Artwork contour signature cache cannot be saved', error);
+      }
+      return results.sort((first, second) => second.score - first.score);
+    }
+
     async function getArtworkSignature(id) {
       if (artworkSignatureCache.has(id)) return artworkSignatureCache.get(id);
       const response = await fetch(artworkUrl(id));
@@ -4254,15 +4363,35 @@
       try {
         const uploadedImage = await createImageBitmap(file);
         const uploadedSignature = imageSignature(uploadedImage);
-        const uploadedDetailSignature = imageDetailSignature(uploadedImage);
+        let uploadedDetailSignature = null;
+        try {
+          uploadedDetailSignature = imageDetailSignature(uploadedImage);
+        } catch (error) {
+          console.warn('Photo detail could not be analyzed', error);
+        }
+        let uploadedContourSignature = null;
+        try {
+          uploadedContourSignature = imageContourSignature(uploadedImage);
+        } catch (error) {
+          console.warn('Photo outline could not be analyzed', error);
+        }
         uploadedImage.close();
         await loadArtworkSignatures(true);
         const firstMatches = Array.from(artworkSignatureCache.entries())
           .map(([id, signature]) => ({ id, score: signatureSimilarity(uploadedSignature, signature) }))
           .sort((first, second) => second.score - first.score)
           .slice(0, 32);
-        photoStatus.textContent = t('photoRefining');
-        const matches = (await refinePhotoMatches(firstMatches, uploadedDetailSignature)).slice(0, 3);
+        let detailedMatches = firstMatches;
+        if (uploadedDetailSignature) {
+          photoStatus.textContent = t('photoRefining');
+          detailedMatches = await refinePhotoMatches(firstMatches, uploadedDetailSignature);
+        }
+        let matches = detailedMatches;
+        if (uploadedContourSignature) {
+          photoStatus.textContent = t('photoFinalizing');
+          matches = await refinePhotoContours(detailedMatches.slice(0, 12), uploadedContourSignature);
+        }
+        matches = matches.slice(0, 3);
         const pokemon = await Promise.all(matches.map(({ id }) => fetchJson(`https://pokeapi.co/api/v2/pokemon/${id}`)));
         photoStatus.innerHTML = `${t('photoMatches')}${pokemon.map((entry) => `<button class="photo-candidate" type="button" data-pokemon-id="${entry.id}" data-pokemon-name="${entry.name}">${capitalize(entry.name)}</button>`).join('')}`;
         photoStatus.querySelectorAll('.photo-candidate').forEach((button) => {
