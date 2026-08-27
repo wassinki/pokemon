@@ -1795,33 +1795,23 @@
       position: relative;
       overflow: hidden;
       background:
-        radial-gradient(circle at 12px 12px, rgba(157, 91, 36, 0.2) 0 2px, transparent 2.5px) 0 0 / 27px 27px,
-        linear-gradient(135deg, rgba(255, 255, 255, 0.22) 25%, transparent 25%) 0 0 / 38px 38px,
+        url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5MiIgaGVpZ2h0PSI5MiIgdmlld0JveD0iMCAwIDkyIDkyIj48ZyBmaWxsPSJub25lIiBzdHJva2U9IiM3NjUwMmQiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZmlsbD0iI2ZmZDYyZSIgZD0iTTI0IDYwIDEwIDExbDI5IDM5WiIvPjxwYXRoIGZpbGw9IiNmZmQ2MmUiIGQ9Im02OCA2MCAxNC00OS0yOSAzOVoiLz48L2c+PHBhdGggZmlsbD0iIzJlMjUyMSIgZD0ibTEwIDExIDUgMTggOC0xMFogTTgyIDExbC01IDE4LTgtMTBaIi8+PGNpcmNsZSBjeD0iMjAiIGN5PSI3NSIgcj0iNiIgZmlsbD0iI2VkNTM0NyIvPjxjaXJjbGUgY3g9IjcyIiBjeT0iNzUiIHI9IjYiIGZpbGw9IiNlZDUzNDciLz48L3N2Zz4='),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.24) 25%, transparent 25%) 0 0 / 38px 38px,
         #ffe45d;
-    }
-    .pokedex-shell.theme-pikachu::before {
-      content: '';
-      position: absolute;
-      z-index: 0;
-      right: -44px;
-      bottom: 72px;
-      width: min(34vw, 370px);
-      aspect-ratio: 1;
-      opacity: 0.19;
-      pointer-events: none;
-      background: url('https://raw.githubusercontent.com/HybridShivam/Pokemon/master/assets/images/0025.png') center / contain no-repeat;
-      filter: saturate(1.22) drop-shadow(0 8px 0 rgba(86, 57, 31, 0.2));
-    }
-    .pokedex-shell.theme-pikachu > * { position: relative; z-index: 1; }
-    .pokedex-shell.theme-pikachu .page-header {
-      background-image: url('https://raw.githubusercontent.com/HybridShivam/Pokemon/master/assets/images/0025.png'), linear-gradient(115deg, #ffd62e, #ffeb79);
-      background-position: calc(100% - 22px) center, center;
-      background-size: 112px auto, auto;
-      background-repeat: no-repeat;
+      background-size: 92px 92px, 38px 38px, auto;
     }
     .pokedex-shell.theme-pikachu .page-header::after { border-color: rgba(86, 57, 31, 0.62); border-radius: 6px 62% 8px 62%; transform: rotate(20deg); }
+    .pokedex-shell.theme-pikachu .page-header {
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5MiIgaGVpZ2h0PSI5MiIgdmlld0JveD0iMCAwIDkyIDkyIj48ZyBmaWxsPSJub25lIiBzdHJva2U9IiM3NjUwMmQiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZmlsbD0iI2ZmZDYyZSIgZD0iTTI0IDYwIDEwIDExbDI5IDM5WiIvPjxwYXRoIGZpbGw9IiNmZmQ2MmUiIGQ9Im02OCA2MCAxNC00OS0yOSAzOVoiLz48L2c+PHBhdGggZmlsbD0iIzJlMjUyMSIgZD0ibTEwIDExIDUgMTggOC0xMFogTTgyIDExbC01IDE4LTgtMTBaIi8+PGNpcmNsZSBjeD0iMjAiIGN5PSI3NSIgcj0iNiIgZmlsbD0iI2VkNTM0NyIvPjxjaXJjbGUgY3g9IjcyIiBjeT0iNzUiIHI9IjYiIGZpbGw9IiNlZDUzNDciLz48L3N2Zz4='), linear-gradient(115deg, #ffd62e, #ffeb79);
+      background-size: 78px 78px, auto;
+    }
     .pokedex-shell.theme-pikachu h2 { border-radius: 20px 7px 20px 7px; }
-    .pokedex-shell.theme-pikachu .grid { border-width: 3px; border-radius: 28px; }
+    .pokedex-shell.theme-pikachu .grid {
+      border-width: 3px;
+      border-radius: 28px;
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5MiIgaGVpZ2h0PSI5MiIgdmlld0JveD0iMCAwIDkyIDkyIj48ZyBmaWxsPSJub25lIiBzdHJva2U9IiM3NjUwMmQiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZmlsbD0iI2ZmZDYyZSIgZD0iTTI0IDYwIDEwIDExbDI5IDM5WiIvPjxwYXRoIGZpbGw9IiNmZmQ2MmUiIGQ9Im02OCA2MCAxNC00OS0yOSAzOVoiLz48L2c+PHBhdGggZmlsbD0iIzJlMjUyMSIgZD0ibTEwIDExIDUgMTggOC0xMFogTTgyIDExbC01IDE4LTgtMTBaIi8+PGNpcmNsZSBjeD0iMjAiIGN5PSI3NSIgcj0iNiIgZmlsbD0iI2VkNTM0NyIvPjxjaXJjbGUgY3g9IjcyIiBjeT0iNzUiIHI9IjYiIGZpbGw9IiNlZDUzNDciLz48L3N2Zz4='), radial-gradient(circle at top right, rgba(255, 103, 73, 0.24), transparent 34%), #fff5bd;
+      background-size: 74px 74px, auto, auto;
+    }
     .pokedex-shell.theme-pikachu .card { border-width: 2px; border-radius: 24px 24px 12px 12px; }
     .pokedex-shell.theme-pikachu .card::before { width: 53px; height: 53px; border-radius: 0 24px 0 52px; }
     .pokedex-shell.theme-pikachu .card img { filter: drop-shadow(2px 5px 2px rgba(86, 57, 31, 0.24)); }
