@@ -4095,6 +4095,45 @@
       return foreground;
     }
 
+    function getForegroundBounds(foreground, size) {
+      let left = size;
+      let top = size;
+      let right = -1;
+      let bottom = -1;
+      foreground.forEach((value, index) => {
+        if (!value) return;
+        const x = index % size;
+        const y = Math.floor(index / size);
+        left = Math.min(left, x);
+        top = Math.min(top, y);
+        right = Math.max(right, x);
+        bottom = Math.max(bottom, y);
+      });
+      if (right < left || bottom < top) return { x: 0, y: 0, width: size, height: size };
+      const padding = Math.max(2, Math.round(Math.max(right - left + 1, bottom - top + 1) * 0.12));
+      const x = Math.max(0, left - padding);
+      const y = Math.max(0, top - padding);
+      const width = Math.min(size - x, right - left + 1 + padding * 2);
+      const height = Math.min(size - y, bottom - top + 1 + padding * 2);
+      return { x, y, width, height };
+    }
+
+    function focusCanvasOnForeground(canvas, context, pixels, size) {
+      const foreground = getForegroundMask(pixels, size);
+      const bounds = getForegroundBounds(foreground, size);
+      if (bounds.width >= size * 0.92 && bounds.height >= size * 0.92) {
+        return { pixels, foreground };
+      }
+      const focusedCanvas = document.createElement('canvas');
+      focusedCanvas.width = size;
+      focusedCanvas.height = size;
+      focusedCanvas.getContext('2d').drawImage(canvas, bounds.x, bounds.y, bounds.width, bounds.height, 0, 0, size, size);
+      context.clearRect(0, 0, size, size);
+      context.drawImage(focusedCanvas, 0, 0);
+      const focusedPixels = context.getImageData(0, 0, size, size).data;
+      return { pixels: focusedPixels, foreground: getForegroundMask(focusedPixels, size) };
+    }
+
     function imageSignature(image) {
       const canvas = document.createElement('canvas');
       canvas.width = 32;
@@ -4114,8 +4153,9 @@
         32,
         32
       );
-      const pixels = context.getImageData(0, 0, 32, 32).data;
-      const foreground = getForegroundMask(pixels, 32);
+      let pixels = context.getImageData(0, 0, 32, 32).data;
+      let foreground = getForegroundMask(pixels, 32);
+      ({ pixels, foreground } = focusCanvasOnForeground(canvas, context, pixels, 32));
       const signature = Array(18).fill(0);
       let includedPixels = 0;
       for (let index = 0; index < pixels.length; index += 4) {
@@ -4161,8 +4201,9 @@
       const imageHeight = image.height || size;
       const cropSize = Math.min(imageWidth, imageHeight);
       context.drawImage(image, (imageWidth - cropSize) / 2, (imageHeight - cropSize) / 2, cropSize, cropSize, 0, 0, size, size);
-      const pixels = context.getImageData(0, 0, size, size).data;
-      const foreground = getForegroundMask(pixels, size);
+      let pixels = context.getImageData(0, 0, size, size).data;
+      let foreground = getForegroundMask(pixels, size);
+      ({ pixels, foreground } = focusCanvasOnForeground(canvas, context, pixels, size));
       const signature = Array(72).fill(0);
       let includedPixels = 0;
       for (let y = 0; y < size; y += 1) {
@@ -4195,7 +4236,7 @@
     function hydrateArtworkDetailSignatures() {
       if (artworkDetailSignatureCache.size) return;
       try {
-        const saved = JSON.parse(window.localStorage.getItem('pokemonArtworkDetailSignaturesV1') || '{}');
+        const saved = JSON.parse(window.localStorage.getItem('pokemonArtworkDetailSignaturesV2') || '{}');
         Object.entries(saved).forEach(([id, signature]) => artworkDetailSignatureCache.set(Number(id), signature));
       } catch (error) {
         console.warn('Detailed artwork signature cache cannot be read', error);
@@ -4230,7 +4271,7 @@
       });
       await Promise.all(workers);
       try {
-        window.localStorage.setItem('pokemonArtworkDetailSignaturesV1', JSON.stringify(Object.fromEntries(artworkDetailSignatureCache)));
+        window.localStorage.setItem('pokemonArtworkDetailSignaturesV2', JSON.stringify(Object.fromEntries(artworkDetailSignatureCache)));
       } catch (error) {
         console.warn('Detailed artwork signature cache cannot be saved', error);
       }
@@ -4247,8 +4288,9 @@
       const imageHeight = image.height || size;
       const cropSize = Math.min(imageWidth, imageHeight);
       context.drawImage(image, (imageWidth - cropSize) / 2, (imageHeight - cropSize) / 2, cropSize, cropSize, 0, 0, size, size);
-      const pixels = context.getImageData(0, 0, size, size).data;
-      const foreground = getForegroundMask(pixels, size);
+      let pixels = context.getImageData(0, 0, size, size).data;
+      let foreground = getForegroundMask(pixels, size);
+      ({ pixels, foreground } = focusCanvasOnForeground(canvas, context, pixels, size));
       const signature = Array(16).fill(0);
       let totalEdge = 0;
       for (let y = 1; y < size - 1; y += 1) {
@@ -4280,7 +4322,7 @@
     function hydrateArtworkContourSignatures() {
       if (artworkContourSignatureCache.size) return;
       try {
-        const saved = JSON.parse(window.localStorage.getItem('pokemonArtworkContourSignaturesV1') || '{}');
+        const saved = JSON.parse(window.localStorage.getItem('pokemonArtworkContourSignaturesV2') || '{}');
         Object.entries(saved).forEach(([id, signature]) => artworkContourSignatureCache.set(Number(id), signature));
       } catch (error) {
         console.warn('Artwork contour signature cache cannot be read', error);
@@ -4315,7 +4357,7 @@
       });
       await Promise.all(workers);
       try {
-        window.localStorage.setItem('pokemonArtworkContourSignaturesV1', JSON.stringify(Object.fromEntries(artworkContourSignatureCache)));
+        window.localStorage.setItem('pokemonArtworkContourSignaturesV2', JSON.stringify(Object.fromEntries(artworkContourSignatureCache)));
       } catch (error) {
         console.warn('Artwork contour signature cache cannot be saved', error);
       }
@@ -4338,7 +4380,7 @@
       if (!artworkSignatureLoadPromise) {
         artworkSignatureLoadPromise = (async () => {
           try {
-            const saved = JSON.parse(window.localStorage.getItem('pokemonArtworkSignaturesV1') || '{}');
+            const saved = JSON.parse(window.localStorage.getItem('pokemonArtworkSignaturesV2') || '{}');
             Object.entries(saved).forEach(([id, signature]) => artworkSignatureCache.set(Number(id), signature));
           } catch (error) {
             console.warn('Artwork signature cache cannot be read', error);
@@ -4360,7 +4402,7 @@
           await Promise.all(workers);
           artworkSignaturesReady = true;
           try {
-            window.localStorage.setItem('pokemonArtworkSignaturesV1', JSON.stringify(Object.fromEntries(artworkSignatureCache)));
+            window.localStorage.setItem('pokemonArtworkSignaturesV2', JSON.stringify(Object.fromEntries(artworkSignatureCache)));
           } catch (error) {
             console.warn('Artwork signature cache cannot be saved', error);
           }
