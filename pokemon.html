@@ -1787,6 +1787,26 @@
         linear-gradient(135deg, rgba(255, 255, 255, 0.22) 25%, transparent 25%) 0 0 / 38px 38px,
         #ffe45d;
     }
+    .pokedex-shell.theme-pikachu::before {
+      content: '';
+      position: absolute;
+      z-index: 0;
+      right: -44px;
+      bottom: 72px;
+      width: min(34vw, 370px);
+      aspect-ratio: 1;
+      opacity: 0.19;
+      pointer-events: none;
+      background: url('https://raw.githubusercontent.com/HybridShivam/Pokemon/master/assets/images/0025.png') center / contain no-repeat;
+      filter: saturate(1.22) drop-shadow(0 8px 0 rgba(86, 57, 31, 0.2));
+    }
+    .pokedex-shell.theme-pikachu > * { position: relative; z-index: 1; }
+    .pokedex-shell.theme-pikachu .page-header {
+      background-image: url('https://raw.githubusercontent.com/HybridShivam/Pokemon/master/assets/images/0025.png'), linear-gradient(115deg, #ffd62e, #ffeb79);
+      background-position: calc(100% - 22px) center, center;
+      background-size: 112px auto, auto;
+      background-repeat: no-repeat;
+    }
     .pokedex-shell.theme-pikachu .page-header::after { border-color: rgba(86, 57, 31, 0.62); border-radius: 6px 62% 8px 62%; transform: rotate(20deg); }
     .pokedex-shell.theme-pikachu h2 { border-radius: 20px 7px 20px 7px; }
     .pokedex-shell.theme-pikachu .grid { border-width: 3px; border-radius: 28px; }
