@@ -425,6 +425,9 @@
     .photo-candidate { margin: 3px 3px 0 0; border: 1px solid #b9f8ff; border-radius: 999px; padding: 4px 7px; color: #07304a; background: #d8faff; font: 800 11px Arial, sans-serif; cursor: pointer; }
     .photo-preview { display: none; width: 92px; height: 92px; margin-top: 12px; border: 3px solid #070b14; border-radius: 12px; object-fit: cover; background: #f8fbff; }
     .photo-preview.is-visible { display: block; }
+    .photo-camera { display: none; width: min(100%, 360px); margin-top: 12px; border: 3px solid #070b14; border-radius: 14px; background: #071d2c; overflow: hidden; }
+    .photo-camera.is-visible { display: block; }
+    .photo-camera video { display: block; width: 100%; max-height: 280px; object-fit: cover; }
 
     .region {
       margin-bottom: 30px;
@@ -1928,8 +1931,11 @@
       </div>
       <div class="photo-finder-actions">
         <button class="photo-recognize-btn" id="photoRecognize" type="button">Vergelijk plaatje</button>
+        <button class="photo-recognize-btn photo-test-btn" id="photoCameraStart" type="button">Open camera</button>
+        <button class="photo-recognize-btn" id="photoCameraCapture" type="button" hidden>Maak foto</button>
         <span class="photo-status" id="photoStatus" aria-live="polite"></span>
       </div>
+      <div class="photo-camera" id="photoCamera"><video id="photoCameraVideo" autoplay playsinline muted></video></div>
       <img class="photo-preview" id="photoPreview" alt="Gekozen Pokémonfoto">
     </section>
 
@@ -2061,6 +2067,11 @@
         photoFinderNote: 'No key needed. This experiment compares a picture with official Pokédex artwork.',
         photoFile: 'Pokémon photo',
         photoRecognize: 'Compare picture',
+        photoCameraStart: 'Open camera',
+        photoCameraStop: 'Close camera',
+        photoCameraCapture: 'Take photo',
+        photoCameraLoading: 'Opening camera…',
+        photoCameraError: 'Camera could not be opened. Allow camera access in your browser settings.',
         photoChooseFile: 'Choose a photo first.',
         photoLoading: 'Comparing with Pokédex artwork…',
         photoFound: 'Found: ',
@@ -2136,6 +2147,11 @@
         photoFinderNote: 'Geen sleutel nodig. Deze proef vergelijkt een plaatje met officiële Pokédex-afbeeldingen.',
         photoFile: 'Foto van een Pokémon',
         photoRecognize: 'Vergelijk plaatje',
+        photoCameraStart: 'Open camera',
+        photoCameraStop: 'Sluit camera',
+        photoCameraCapture: 'Maak foto',
+        photoCameraLoading: 'Camera openen…',
+        photoCameraError: 'De camera kon niet worden geopend. Geef cameratoegang in de browserinstellingen.',
         photoChooseFile: 'Kies eerst een foto.',
         photoLoading: 'Met Pokédex-afbeeldingen vergelijken…',
         photoFound: 'Gevonden: ',
@@ -2150,6 +2166,10 @@
     const searchBox = document.getElementById('searchBox');
     const photoFile = document.getElementById('photoFile');
     const photoRecognize = document.getElementById('photoRecognize');
+    const photoCameraStart = document.getElementById('photoCameraStart');
+    const photoCameraCapture = document.getElementById('photoCameraCapture');
+    const photoCamera = document.getElementById('photoCamera');
+    const photoCameraVideo = document.getElementById('photoCameraVideo');
     const photoPreview = document.getElementById('photoPreview');
     const photoStatus = document.getElementById('photoStatus');
     const pageLanguageToggle = document.getElementById('pageLanguageToggle');
@@ -2189,6 +2209,8 @@
     let activePerlerRenderId = 0;
     let currentSpecialFormIndex = 0;
     let specialFormSwipeStart = null;
+    let photoCameraStream = null;
+    let capturedPokemonPhoto = null;
     const speciesCache = new Map();
     const pokemonCache = new Map();
     const evolutionChainCache = new Map();
@@ -3356,6 +3378,72 @@
       document.getElementById('photoFinderNote').textContent = t('photoFinderNote');
       document.getElementById('photoFileLabel').textContent = t('photoFile');
       photoRecognize.textContent = t('photoRecognize');
+      photoCameraCapture.textContent = t('photoCameraCapture');
+      photoCameraStart.textContent = photoCameraStream ? t('photoCameraStop') : t('photoCameraStart');
+    }
+
+    function stopPokemonCamera() {
+      if (photoCameraStream) {
+        photoCameraStream.getTracks().forEach((track) => track.stop());
+      }
+      photoCameraStream = null;
+      photoCameraVideo.srcObject = null;
+      photoCamera.classList.remove('is-visible');
+      photoCameraCapture.hidden = true;
+      photoCameraStart.textContent = t('photoCameraStart');
+    }
+
+    async function togglePokemonCamera() {
+      if (photoCameraStream) {
+        stopPokemonCamera();
+        return;
+      }
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        photoStatus.textContent = t('photoCameraError');
+        return;
+      }
+      photoCameraStart.disabled = true;
+      photoStatus.textContent = t('photoCameraLoading');
+      try {
+        photoCameraStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' } },
+          audio: false
+        });
+        photoCameraVideo.srcObject = photoCameraStream;
+        await photoCameraVideo.play();
+        photoCamera.classList.add('is-visible');
+        photoCameraCapture.hidden = false;
+        photoCameraStart.textContent = t('photoCameraStop');
+        photoStatus.textContent = '';
+      } catch (error) {
+        console.error('Camera could not be opened', error);
+        stopPokemonCamera();
+        photoStatus.textContent = t('photoCameraError');
+      } finally {
+        photoCameraStart.disabled = false;
+      }
+    }
+
+    async function capturePokemonCameraPhoto() {
+      if (!photoCameraStream || !photoCameraVideo.videoWidth) return;
+      const canvas = document.createElement('canvas');
+      canvas.width = photoCameraVideo.videoWidth;
+      canvas.height = photoCameraVideo.videoHeight;
+      canvas.getContext('2d').drawImage(photoCameraVideo, 0, 0, canvas.width, canvas.height);
+      capturedPokemonPhoto = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.92));
+      if (!capturedPokemonPhoto) {
+        photoStatus.textContent = t('photoError');
+        return;
+      }
+      photoFile.value = '';
+      photoPreview.src = URL.createObjectURL(capturedPokemonPhoto);
+      photoPreview.classList.add('is-visible');
+      photoStatus.textContent = '';
+      stopPokemonCamera();
+    }
+
+    function selectedPokemonPhoto() {
+      return capturedPokemonPhoto || (photoFile.files && photoFile.files[0]);
     }
 
     function artworkUrl(id) {
@@ -3442,7 +3530,7 @@
     }
 
     async function recognizePokemonPhoto() {
-      const file = photoFile.files && photoFile.files[0];
+      const file = selectedPokemonPhoto();
       if (!file) {
         photoStatus.textContent = t('photoChooseFile');
         return;
@@ -3806,6 +3894,7 @@
 
     photoFile.addEventListener('change', () => {
       const file = photoFile.files && photoFile.files[0];
+      capturedPokemonPhoto = null;
       if (!file) {
         photoPreview.removeAttribute('src');
         photoPreview.classList.remove('is-visible');
@@ -3817,6 +3906,9 @@
     });
 
     photoRecognize.addEventListener('click', recognizePokemonPhoto);
+    photoCameraStart.addEventListener('click', togglePokemonCamera);
+    photoCameraCapture.addEventListener('click', capturePokemonCameraPhoto);
+    window.addEventListener('beforeunload', stopPokemonCamera);
 
     pageLanguageToggle.addEventListener('click', (event) => {
       const button = event.target.closest('.lang-btn');
