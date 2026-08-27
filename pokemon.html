@@ -422,6 +422,7 @@
     .photo-test-btn { color: #f8fbff; background: #07537c; }
     .photo-recognize-btn:disabled { cursor: wait; opacity: 0.72; }
     .photo-status { flex: 1; min-width: 180px; color: #fff; font-size: 12px; font-weight: 700; }
+    .photo-candidate { margin: 3px 3px 0 0; border: 1px solid #b9f8ff; border-radius: 999px; padding: 4px 7px; color: #07304a; background: #d8faff; font: 800 11px Arial, sans-serif; cursor: pointer; }
     .photo-preview { display: none; width: 92px; height: 92px; margin-top: 12px; border: 3px solid #070b14; border-radius: 12px; object-fit: cover; background: #f8fbff; }
     .photo-preview.is-visible { display: block; }
 
@@ -1921,15 +1922,12 @@
 
     <section class="photo-finder" aria-labelledby="photoFinderTitle">
       <h2 id="photoFinderTitle">Pokémon herkennen met een foto</h2>
-      <p class="photo-finder-note" id="photoFinderNote">Voeg je eigen Hugging Face-sleutel toe. Deze wordt alleen op dit apparaat in je browser bewaard.</p>
+      <p class="photo-finder-note" id="photoFinderNote">Geen sleutel nodig. Deze proef vergelijkt een plaatje met officiële Pokédex-afbeeldingen.</p>
       <div class="photo-finder-grid">
-        <label><span id="photoApiKeyLabel">Hugging Face-sleutel</span><input id="photoApiKey" type="password" autocomplete="off" placeholder="hf_..." spellcheck="false"></label>
-        <label><span id="photoModelLabel">Vision-AI-model</span><input id="photoModel" type="text" value="meta-llama/Llama-3.2-11B-Vision-Instruct" spellcheck="false"></label>
         <label class="photo-file-field"><span id="photoFileLabel">Foto van een Pokémon</span><input id="photoFile" type="file" accept="image/*" capture="environment"></label>
       </div>
       <div class="photo-finder-actions">
-        <button class="photo-recognize-btn" id="photoRecognize" type="button">Herken Pokémon</button>
-        <button class="photo-recognize-btn photo-test-btn" id="photoTest" type="button">Test verbinding</button>
+        <button class="photo-recognize-btn" id="photoRecognize" type="button">Vergelijk plaatje</button>
         <span class="photo-status" id="photoStatus" aria-live="polite"></span>
       </div>
       <img class="photo-preview" id="photoPreview" alt="Gekozen Pokémonfoto">
@@ -2060,24 +2058,16 @@
         unknown: 'Unknown',
         searchPlaceholder: 'Search Pokémon...',
         photoFinderTitle: 'Identify a Pokémon from a photo',
-        photoFinderNote: 'Add your own Hugging Face key. It stays only in this browser; the selected photo is sent to Hugging Face for recognition.',
-        photoApiKey: 'Hugging Face key',
-        photoModel: 'Vision AI model',
+        photoFinderNote: 'No key needed. This experiment compares a picture with official Pokédex artwork.',
         photoFile: 'Pokémon photo',
-        photoRecognize: 'Identify Pokémon',
-        photoTest: 'Test connection',
+        photoRecognize: 'Compare picture',
         photoChooseFile: 'Choose a photo first.',
-        photoChooseKey: 'Enter your Hugging Face key first.',
-        photoLoading: 'Analysing photo…',
+        photoLoading: 'Comparing with Pokédex artwork…',
         photoFound: 'Found: ',
-        photoNoMatch: 'No Pokémon was recognised. Try a clearer photo or another vision model.',
-        photoError: 'Recognition failed. Check your key, model and internet connection.',
-        photoTesting: 'Testing Hugging Face connection…',
-        photoConnectionOK: 'Connection works. Your key is accepted.',
-        photoKeyInvalid: 'Hugging Face rejected this key (401). Paste the complete hf_ key again.',
-        photoKeyPermission: 'Hugging Face denied access (403). Give the key “Make calls to Inference Providers” permission.',
-        photoRateLimit: 'Too many requests (429). Wait a moment and try again.',
-        photoNetworkError: 'Could not reach Hugging Face. Check your internet connection or try again later.'
+        photoNoMatch: 'No close match was found. Try official artwork or a clearer screenshot.',
+        photoError: 'Comparison failed. Check your internet connection.',
+        photoNetworkError: 'The Pokédex artwork could not be reached. Check your internet connection and try again.',
+        photoMatches: 'Best matches: '
       },
       nl: {
         appTitle: 'Volledige Pokédex per regio',
@@ -2143,34 +2133,23 @@
         unknown: 'Onbekend',
         searchPlaceholder: 'Zoek Pokémon...',
         photoFinderTitle: 'Pokémon herkennen met een foto',
-        photoFinderNote: 'Voeg je eigen Hugging Face-sleutel toe. Die blijft alleen in deze browser; de gekozen foto wordt voor herkenning naar Hugging Face gestuurd.',
-        photoApiKey: 'Hugging Face-sleutel',
-        photoModel: 'Vision-AI-model',
+        photoFinderNote: 'Geen sleutel nodig. Deze proef vergelijkt een plaatje met officiële Pokédex-afbeeldingen.',
         photoFile: 'Foto van een Pokémon',
-        photoRecognize: 'Herken Pokémon',
-        photoTest: 'Test verbinding',
+        photoRecognize: 'Vergelijk plaatje',
         photoChooseFile: 'Kies eerst een foto.',
-        photoChooseKey: 'Vul eerst je Hugging Face-sleutel in.',
-        photoLoading: 'Foto analyseren…',
+        photoLoading: 'Met Pokédex-afbeeldingen vergelijken…',
         photoFound: 'Gevonden: ',
-        photoNoMatch: 'Geen Pokémon herkend. Probeer een duidelijkere foto of een ander vision-AI-model.',
-        photoError: 'Herkennen mislukt. Controleer je sleutel, model en internetverbinding.',
-        photoTesting: 'Verbinding met Hugging Face testen…',
-        photoConnectionOK: 'Verbinding werkt. Je sleutel is geaccepteerd.',
-        photoKeyInvalid: 'Hugging Face weigert deze sleutel (401). Plak de volledige hf_-sleutel opnieuw.',
-        photoKeyPermission: 'Hugging Face weigert de toegang (403). Geef de sleutel de machtiging “Make calls to Inference Providers”.',
-        photoRateLimit: 'Te veel aanvragen (429). Wacht even en probeer het opnieuw.',
-        photoNetworkError: 'Hugging Face is niet bereikbaar. Controleer je internetverbinding of probeer het later opnieuw.'
+        photoNoMatch: 'Geen goede overeenkomst. Probeer officiële art of een duidelijkere screenshot.',
+        photoError: 'Vergelijken mislukt. Controleer je internetverbinding.',
+        photoNetworkError: 'De Pokédex-afbeeldingen zijn niet bereikbaar. Controleer je internetverbinding en probeer het opnieuw.',
+        photoMatches: 'Beste overeenkomsten: '
       }
     };
 
     const container = document.getElementById('container');
     const searchBox = document.getElementById('searchBox');
-    const photoApiKey = document.getElementById('photoApiKey');
-    const photoModel = document.getElementById('photoModel');
     const photoFile = document.getElementById('photoFile');
     const photoRecognize = document.getElementById('photoRecognize');
-    const photoTest = document.getElementById('photoTest');
     const photoPreview = document.getElementById('photoPreview');
     const photoStatus = document.getElementById('photoStatus');
     const pageLanguageToggle = document.getElementById('pageLanguageToggle');
@@ -2215,6 +2194,7 @@
     const evolutionChainCache = new Map();
     const formCache = new Map();
     const moveCache = new Map();
+    const artworkSignatureCache = new Map();
     const dutchFlavorTranslationCache = new Map();
 
     function finishBootSequence() {
@@ -3374,128 +3354,117 @@
     function syncPhotoFinderText() {
       document.getElementById('photoFinderTitle').textContent = t('photoFinderTitle');
       document.getElementById('photoFinderNote').textContent = t('photoFinderNote');
-      document.getElementById('photoApiKeyLabel').textContent = t('photoApiKey');
-      document.getElementById('photoModelLabel').textContent = t('photoModel');
       document.getElementById('photoFileLabel').textContent = t('photoFile');
       photoRecognize.textContent = t('photoRecognize');
-      photoTest.textContent = t('photoTest');
     }
 
-    async function getHuggingFaceError(response) {
-      if (response.status === 401) return t('photoKeyInvalid');
-      if (response.status === 403) return t('photoKeyPermission');
-      if (response.status === 429) return t('photoRateLimit');
-      let details = '';
-      try {
-        const body = await response.json();
-        details = String(body && (body.error?.message || body.error || body.message) || '').replace(/\s+/g, ' ').slice(0, 120);
-      } catch (error) {
-        // The endpoint did not return a JSON error body.
-      }
-      return `${t('photoError')} (${response.status}${details ? `: ${details}` : ''})`;
+    function artworkUrl(id) {
+      return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
     }
 
-    async function testHuggingFaceConnection() {
-      const apiKey = photoApiKey.value.trim();
-      if (!apiKey) {
-        photoStatus.textContent = t('photoChooseKey');
-        return;
+    function imageSignature(image) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 32;
+      canvas.height = 32;
+      const context = canvas.getContext('2d', { willReadFrequently: true });
+      context.drawImage(image, 0, 0, 32, 32);
+      const pixels = context.getImageData(0, 0, 32, 32).data;
+      const signature = Array(18).fill(0);
+      let includedPixels = 0;
+      for (let index = 0; index < pixels.length; index += 4) {
+        const red = pixels[index];
+        const green = pixels[index + 1];
+        const blue = pixels[index + 2];
+        if (pixels[index + 3] < 100 || (red > 242 && green > 242 && blue > 242)) continue;
+        const max = Math.max(red, green, blue) / 255;
+        const min = Math.min(red, green, blue) / 255;
+        const chroma = max - min;
+        if (chroma < 0.12) {
+          signature[15 + Math.min(2, Math.floor(max * 3))] += 1;
+        } else {
+          let hue = red >= green && red >= blue ? (green - blue) / chroma : (green >= blue ? 2 + (blue - red) / chroma : 4 + (red - green) / chroma);
+          hue = (hue * 60 + 360) % 360;
+          signature[Math.min(14, Math.floor(hue / 24))] += 1;
+        }
+        includedPixels += 1;
       }
-      photoTest.disabled = true;
-      photoStatus.textContent = t('photoTesting');
-      try {
-        const response = await fetch('https://router.huggingface.co/v1/models', {
-          headers: { 'Authorization': `Bearer ${apiKey}` }
-        });
-        photoStatus.textContent = response.ok
-          ? t('photoConnectionOK')
-          : await getHuggingFaceError(response);
-      } catch (error) {
-        console.error('Hugging Face connection test failed', error);
-        photoStatus.textContent = t('photoNetworkError');
-      } finally {
-        photoTest.disabled = false;
-      }
+      if (!includedPixels) throw new Error('No usable picture pixels');
+      return signature.map((value) => value / includedPixels);
     }
 
-    function readFileAsDataUrl(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onerror = () => reject(reader.error);
-        reader.onload = () => resolve(String(reader.result || ''));
-        reader.readAsDataURL(file);
+    function signatureSimilarity(first, second) {
+      let dot = 0;
+      let firstLength = 0;
+      let secondLength = 0;
+      first.forEach((value, index) => {
+        dot += value * second[index];
+        firstLength += value * value;
+        secondLength += second[index] * second[index];
       });
+      return dot / Math.sqrt(firstLength * secondLength || 1);
     }
 
-    function normalizePredictionLabel(label) {
-      const answer = String(label || '')
-        .replace(/^\s*(?:the\s+pok(?:e|é)mon\s+is|pok(?:e|é)mon|answer)\s*[:\-]?\s*/i, '')
-        .split(/[\r\n.!?]/)[0];
-      return answer
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
+    async function getArtworkSignature(id) {
+      if (artworkSignatureCache.has(id)) return artworkSignatureCache.get(id);
+      const response = await fetch(artworkUrl(id));
+      if (!response.ok) throw new Error(`Artwork ${id} failed`);
+      const bitmap = await createImageBitmap(await response.blob());
+      const signature = imageSignature(bitmap);
+      bitmap.close();
+      artworkSignatureCache.set(id, signature);
+      return signature;
+    }
+
+    async function loadArtworkSignatures() {
+      if (artworkSignatureCache.size) return;
+      try {
+        const saved = JSON.parse(window.localStorage.getItem('pokemonArtworkSignaturesV1') || '{}');
+        Object.entries(saved).forEach(([id, signature]) => artworkSignatureCache.set(Number(id), signature));
+      } catch (error) {
+        console.warn('Artwork signature cache cannot be read', error);
+      }
+      const missing = Array.from({ length: 1025 }, (_, index) => index + 1).filter((id) => !artworkSignatureCache.has(id));
+      let completed = 0;
+      const workers = Array.from({ length: 8 }, async () => {
+        while (missing.length) {
+          const id = missing.shift();
+          try { await getArtworkSignature(id); } catch (error) { console.warn('Artwork skipped', id, error); }
+          completed += 1;
+          if (completed % 24 === 0 || completed === missing.length) photoStatus.textContent = `${t('photoLoading')} ${completed}/1025`;
+        }
+      });
+      await Promise.all(workers);
+      try {
+        window.localStorage.setItem('pokemonArtworkSignaturesV1', JSON.stringify(Object.fromEntries(artworkSignatureCache)));
+      } catch (error) {
+        console.warn('Artwork signature cache cannot be saved', error);
+      }
     }
 
     async function recognizePokemonPhoto() {
-      const apiKey = photoApiKey.value.trim();
       const file = photoFile.files && photoFile.files[0];
-      const model = photoModel.value.trim();
       if (!file) {
         photoStatus.textContent = t('photoChooseFile');
         return;
       }
-      if (!apiKey) {
-        photoStatus.textContent = t('photoChooseKey');
-        return;
-      }
-      if (!model || !model.includes('/')) {
-        photoStatus.textContent = t('photoError');
-        return;
-      }
-
       photoRecognize.disabled = true;
       photoStatus.textContent = t('photoLoading');
       try {
-        const imageDataUrl = await readFileAsDataUrl(file);
-        const response = await fetch('https://router.huggingface.co/v1/chat/completions', {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model,
-            temperature: 0,
-            max_tokens: 24,
-            messages: [{
-              role: 'user',
-              content: [
-                { type: 'text', text: 'Identify the Pokémon in this image. Reply with only its official English Pokémon species name, without punctuation, explanations, or Markdown. If there is no Pokémon, reply UNKNOWN.' },
-                { type: 'image_url', image_url: { url: imageDataUrl } }
-              ]
-            }]
-          })
+        const uploadedImage = await createImageBitmap(file);
+        const uploadedSignature = imageSignature(uploadedImage);
+        uploadedImage.close();
+        await loadArtworkSignatures();
+        const matches = Array.from(artworkSignatureCache.entries())
+          .map(([id, signature]) => ({ id, score: signatureSimilarity(uploadedSignature, signature) }))
+          .sort((first, second) => second.score - first.score)
+          .slice(0, 3);
+        const pokemon = await Promise.all(matches.map(({ id }) => fetchJson(`https://pokeapi.co/api/v2/pokemon/${id}`)));
+        photoStatus.innerHTML = `${t('photoMatches')}${pokemon.map((entry) => `<button class="photo-candidate" type="button" data-pokemon-id="${entry.id}" data-pokemon-name="${entry.name}">${capitalize(entry.name)}</button>`).join('')}`;
+        photoStatus.querySelectorAll('.photo-candidate').forEach((button) => {
+          button.addEventListener('click', () => openOverlay(Number(button.dataset.pokemonId), button.dataset.pokemonName));
         });
-        if (!response.ok) {
-          photoStatus.textContent = await getHuggingFaceError(response);
-          return;
-        }
-        const result = await response.json();
-        const pokemonName = normalizePredictionLabel(result?.choices?.[0]?.message?.content);
-        if (!pokemonName || pokemonName === 'unknown') {
-          photoStatus.textContent = t('photoNoMatch');
-          return;
-        }
-        let pokemon;
-        try {
-          pokemon = await fetchJson(`https://pokeapi.co/api/v2/pokemon/${encodeURIComponent(pokemonName)}`);
-        } catch (lookupError) {
-          console.warn('Vision model answer did not match a PokéAPI Pokémon', pokemonName, lookupError);
-          photoStatus.textContent = t('photoNoMatch');
-          return;
-        }
-        photoStatus.textContent = `${t('photoFound')}${capitalize(pokemon.name)}`;
-        openOverlay(pokemon.id, pokemon.name);
       } catch (error) {
-        console.error('Pokémon photo recognition failed', error);
+        console.error('Pokémon artwork comparison failed', error);
         photoStatus.textContent = t('photoNetworkError');
       } finally {
         photoRecognize.disabled = false;
@@ -3835,36 +3804,6 @@
       });
     });
 
-    try {
-      photoApiKey.value = window.localStorage.getItem('pokemonHuggingFaceKey') || '';
-      const savedRecognitionModel = window.localStorage.getItem('pokemonRecognitionModel');
-      photoModel.value = [
-        'imjeffhi/pokemon_classifier',
-        'Qwen/Qwen2.5-VL-7B-Instruct',
-        'Qwen/Qwen2.5-VL-3B-Instruct'
-      ].includes(savedRecognitionModel)
-        ? photoModel.value
-        : (savedRecognitionModel || photoModel.value);
-    } catch (error) {
-      console.warn('Photo recognition settings cannot be read', error);
-    }
-
-    photoApiKey.addEventListener('input', () => {
-      try {
-        window.localStorage.setItem('pokemonHuggingFaceKey', photoApiKey.value.trim());
-      } catch (error) {
-        console.warn('Photo recognition key cannot be saved', error);
-      }
-    });
-
-    photoModel.addEventListener('change', () => {
-      try {
-        window.localStorage.setItem('pokemonRecognitionModel', photoModel.value.trim());
-      } catch (error) {
-        console.warn('Photo recognition model cannot be saved', error);
-      }
-    });
-
     photoFile.addEventListener('change', () => {
       const file = photoFile.files && photoFile.files[0];
       if (!file) {
@@ -3878,7 +3817,6 @@
     });
 
     photoRecognize.addEventListener('click', recognizePokemonPhoto);
-    photoTest.addEventListener('click', testHuggingFaceConnection);
 
     pageLanguageToggle.addEventListener('click', (event) => {
       const button = event.target.closest('.lang-btn');
