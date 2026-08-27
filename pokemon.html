@@ -467,6 +467,7 @@
     .camera-feedback { width: min(720px, 100%); min-height: 0; margin: -10px auto 12px; }
 
     .photo-status { flex: 1; min-width: 180px; color: #fff; font-size: 12px; font-weight: 700; }
+    .photo-related-label { display: block; margin-top: 8px; color: #d8faff; font-size: 11px; font-weight: 800; }
     .photo-candidate { margin: 3px 3px 0 0; border: 1px solid #b9f8ff; border-radius: 999px; padding: 4px 7px; color: #07304a; background: #d8faff; font: 800 11px Arial, sans-serif; cursor: pointer; }
     .photo-camera { position: relative; display: none; width: min(100%, 360px); margin: 0 auto 16px; border: 3px solid #070b14; border-radius: 14px; background: #071d2c; overflow: hidden; }
     .photo-camera.is-visible { display: block; }
@@ -2596,6 +2597,7 @@
         photoLoading: 'Comparing with Pokédex artwork…',
         photoRefining: 'Checking the best matches more closely…',
         photoFinalizing: 'Comparing outlines of the best matches…',
+        photoRelated: 'Also check this evolution family: ',
         photoFound: 'Found: ',
         photoNoMatch: 'No close match was found. Try official artwork or a clearer screenshot.',
         photoError: 'Comparison failed. Check your internet connection.',
@@ -2693,6 +2695,7 @@
         photoLoading: 'Met Pokédex-afbeeldingen vergelijken…',
         photoRefining: 'Beste overeenkomsten nauwkeuriger bekijken…',
         photoFinalizing: 'Omtrekken van de beste overeenkomsten vergelijken…',
+        photoRelated: 'Bekijk ook deze evolutielijn: ',
         photoFound: 'Gevonden: ',
         photoNoMatch: 'Geen goede overeenkomst. Probeer officiële art of een duidelijkere screenshot.',
         photoError: 'Vergelijken mislukt. Controleer je internetverbinding.',
@@ -4364,6 +4367,30 @@
       return results.sort((first, second) => second.score - first.score);
     }
 
+    function collectEvolutionIds(node, ids = []) {
+      if (!node) return ids;
+      const id = extractPokemonId(node.species && node.species.url);
+      if (id) ids.push(id);
+      (node.evolves_to || []).forEach((child) => collectEvolutionIds(child, ids));
+      return ids;
+    }
+
+    async function findRelatedEvolutionCandidates(matches) {
+      if (!matches.length) return [];
+      try {
+        const species = await fetchJson(`https://pokeapi.co/api/v2/pokemon-species/${matches[0].id}`);
+        if (!species.evolution_chain || !species.evolution_chain.url) return [];
+        const evolutionChain = await fetchJson(species.evolution_chain.url);
+        const primaryIds = new Set(matches.map(({ id }) => id));
+        return [...new Set(collectEvolutionIds(evolutionChain.chain))]
+          .filter((id) => !primaryIds.has(id))
+          .slice(0, 3);
+      } catch (error) {
+        console.warn('Evolution family lookup failed', error);
+        return [];
+      }
+    }
+
     async function getArtworkSignature(id) {
       if (artworkSignatureCache.has(id)) return artworkSignatureCache.get(id);
       const response = await fetch(artworkUrl(id));
@@ -4456,7 +4483,15 @@
         }
         matches = matches.slice(0, 3);
         const pokemon = await Promise.all(matches.map(({ id }) => fetchJson(`https://pokeapi.co/api/v2/pokemon/${id}`)));
-        photoStatus.innerHTML = `${t('photoMatches')}${pokemon.map((entry) => `<button class="photo-candidate" type="button" data-pokemon-id="${entry.id}" data-pokemon-name="${entry.name}">${capitalize(entry.name)}</button>`).join('')}`;
+        const relatedIds = await findRelatedEvolutionCandidates(matches);
+        const relatedPokemon = relatedIds.length
+          ? await Promise.all(relatedIds.map((id) => fetchJson(`https://pokeapi.co/api/v2/pokemon/${id}`)))
+          : [];
+        const candidateButton = (entry) => `<button class="photo-candidate" type="button" data-pokemon-id="${entry.id}" data-pokemon-name="${entry.name}">${capitalize(entry.name)}</button>`;
+        const relatedMarkup = relatedPokemon.length
+          ? `<span class="photo-related-label">${t('photoRelated')}</span>${relatedPokemon.map(candidateButton).join('')}`
+          : '';
+        photoStatus.innerHTML = `${t('photoMatches')}${pokemon.map(candidateButton).join('')}${relatedMarkup}`;
         photoStatus.querySelectorAll('.photo-candidate').forEach((button) => {
           button.addEventListener('click', () => openOverlay(Number(button.dataset.pokemonId), button.dataset.pokemonName));
         });
