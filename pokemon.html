@@ -1613,9 +1613,10 @@
       z-index: 12000;
       display: grid;
       place-items: center;
-      padding: 22px;
-      background: rgba(3, 13, 31, 0.62);
-      backdrop-filter: blur(5px);
+      overflow-y: auto;
+      padding: 26px 18px;
+      background: radial-gradient(circle at 50% 20%, rgba(78, 220, 255, 0.2), transparent 35%), rgba(3, 13, 31, 0.76);
+      backdrop-filter: blur(9px);
     }
 
     .settings-panel[hidden] {
@@ -1624,24 +1625,63 @@
 
     .settings-card {
       position: relative;
-      width: min(100%, 350px);
-      padding: 27px 24px 24px;
+      width: min(100%, 440px);
+      margin: auto;
+      padding: 28px;
       border: 4px solid #070b14;
-      border-radius: 24px;
+      border-radius: 26px 26px 18px 18px;
       color: #071329;
-      background: linear-gradient(145deg, #f8fcff, #9de5ff);
-      box-shadow: 9px 9px 0 #070b14;
+      background: linear-gradient(145deg, #f9fdff 0 19%, #c7f2ff 19% 100%);
+      box-shadow: 0 0 0 5px rgba(219, 251, 255, 0.52), 10px 12px 0 #070b14;
       text-align: center;
     }
 
-    .settings-card h2 {
-      margin: 0 36px 8px 0;
-      font-size: 25px;
+    .settings-card::before {
+      content: '';
+      position: absolute;
+      top: 13px;
+      left: 18px;
+      width: 46px;
+      height: 11px;
+      border: 2px solid #070b14;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #e64c50 0 29%, #ffdc55 29% 57%, #38c4e5 57%);
     }
 
-    .settings-card p {
-      margin: 0 0 15px;
-      font-weight: 700;
+    .settings-card h2 {
+      margin: 27px 42px 2px 0;
+      padding: 0;
+      overflow: visible;
+      border: 0;
+      border-radius: 0;
+      color: #071329;
+      background: transparent;
+      box-shadow: none;
+      font-size: 27px;
+      letter-spacing: 0.02em;
+      text-align: left;
+      text-shadow: none;
+      text-transform: none;
+    }
+
+    .settings-card h2::before {
+      display: none;
+    }
+
+    .settings-kicker {
+      margin: 0 42px 14px 0;
+      color: #277192;
+      font: 800 10px/1.2 Consolas, monospace;
+      letter-spacing: 0.13em;
+      text-align: left;
+    }
+
+    .settings-hint {
+      margin: 0 0 18px;
+      color: #29485b;
+      font-size: 13px;
+      line-height: 1.35;
+      text-align: left;
     }
 
     .settings-close {
@@ -1665,8 +1705,39 @@
       gap: 10px;
     }
 
+    .settings-section {
+      margin-top: 13px;
+      padding: 13px;
+      border: 2px solid rgba(7, 11, 20, 0.58);
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.46);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+      text-align: left;
+    }
+
+    .settings-section-title {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin: 0 0 10px;
+      color: #153d53;
+      font: 900 12px/1 Arial, sans-serif;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .settings-section-title::before {
+      content: '';
+      width: 9px;
+      height: 9px;
+      border: 2px solid #071329;
+      border-radius: 50%;
+      background: #e44747;
+      box-shadow: 1px 1px 0 #071329;
+    }
+
     .settings-narration {
-      margin-top: 17px;
+      margin-top: 0;
     }
 
     .settings-narration .page-narration-toggle {
@@ -1677,7 +1748,7 @@
     }
 
     .settings-theme-label {
-      margin-top: 20px !important;
+      margin-top: 0 !important;
     }
 
     .settings-themes {
@@ -1701,6 +1772,12 @@
     .theme-choice.is-active {
       outline: 3px solid #e44747;
       outline-offset: 2px;
+    }
+
+    .settings-saved {
+      margin: 15px 0 0;
+      color: #2b6079;
+      font: 700 11px/1.35 Arial, sans-serif;
     }
 
     .theme-preview {
@@ -2256,25 +2333,35 @@
     <div class="settings-card">
       <button class="settings-close" id="settingsClose" type="button" aria-label="Close settings" title="Close settings">✕</button>
       <h2 id="settingsTitle">Settings</h2>
-      <p id="settingsLanguageLabel">Language</p>
-      <div class="settings-language" id="settingsLanguageToggle">
-        <button class="settings-lang-btn" data-lang="en" type="button">🇬🇧 English</button>
-        <button class="settings-lang-btn" data-lang="nl" type="button">🇳🇱 Nederlands</button>
+      <p class="settings-kicker" id="settingsKicker">POKÉDEX CONTROL PANEL</p>
+      <p class="settings-hint" id="settingsHint">Choose how the Pokédex looks and sounds.</p>
+      <div class="settings-section">
+        <p class="settings-section-title" id="settingsLanguageLabel">Language</p>
+        <div class="settings-language" id="settingsLanguageToggle">
+          <button class="settings-lang-btn" data-lang="en" type="button">🇬🇧 English</button>
+          <button class="settings-lang-btn" data-lang="nl" type="button">🇳🇱 Nederlands</button>
+        </div>
       </div>
-      <p class="settings-theme-label" id="settingsThemeLabel">Theme</p>
-      <div class="settings-themes" id="settingsThemeToggle">
-        <button class="theme-choice" data-theme="classic" type="button"><span class="theme-preview"></span><span data-theme-name="classic">Classic</span></button>
-        <button class="theme-choice" data-theme="rotom" type="button"><span class="theme-preview theme-preview-rotom"></span><span data-theme-name="rotom">Rotom Phone</span></button>
-        <button class="theme-choice" data-theme="pikachu" type="button"><span class="theme-preview theme-preview-pikachu"></span><span data-theme-name="pikachu">Pikachu</span></button>
-        <button class="theme-choice" data-theme="cozy" type="button"><span class="theme-preview theme-preview-cozy"></span><span data-theme-name="cozy">Cozy</span></button>
-        <button class="theme-choice" data-theme="galaxy" type="button"><span class="theme-preview theme-preview-galaxy"></span><span data-theme-name="galaxy">Galaxy</span></button>
-        <button class="theme-choice" data-theme="forest" type="button"><span class="theme-preview theme-preview-forest"></span><span data-theme-name="forest">Forest</span></button>
-        <button class="theme-choice" data-theme="ocean" type="button"><span class="theme-preview theme-preview-ocean"></span><span data-theme-name="ocean">Ocean</span></button>
-        <button class="theme-choice" data-theme="kanto" type="button"><span class="theme-preview theme-preview-kanto"></span><span data-theme-name="kanto">Kanto</span></button>
+      <div class="settings-section">
+        <p class="settings-section-title settings-theme-label" id="settingsThemeLabel">Theme</p>
+        <div class="settings-themes" id="settingsThemeToggle">
+          <button class="theme-choice" data-theme="classic" type="button"><span class="theme-preview"></span><span data-theme-name="classic">Classic</span></button>
+          <button class="theme-choice" data-theme="rotom" type="button"><span class="theme-preview theme-preview-rotom"></span><span data-theme-name="rotom">Rotom Phone</span></button>
+          <button class="theme-choice" data-theme="pikachu" type="button"><span class="theme-preview theme-preview-pikachu"></span><span data-theme-name="pikachu">Pikachu</span></button>
+          <button class="theme-choice" data-theme="cozy" type="button"><span class="theme-preview theme-preview-cozy"></span><span data-theme-name="cozy">Cozy</span></button>
+          <button class="theme-choice" data-theme="galaxy" type="button"><span class="theme-preview theme-preview-galaxy"></span><span data-theme-name="galaxy">Galaxy</span></button>
+          <button class="theme-choice" data-theme="forest" type="button"><span class="theme-preview theme-preview-forest"></span><span data-theme-name="forest">Forest</span></button>
+          <button class="theme-choice" data-theme="ocean" type="button"><span class="theme-preview theme-preview-ocean"></span><span data-theme-name="ocean">Ocean</span></button>
+          <button class="theme-choice" data-theme="kanto" type="button"><span class="theme-preview theme-preview-kanto"></span><span data-theme-name="kanto">Kanto</span></button>
+        </div>
       </div>
-      <div class="settings-narration">
-        <button class="page-narration-toggle" id="pageNarrationToggle" aria-label="Narration off" title="Narration off" hidden>🗣️ Narration off</button>
+      <div class="settings-section">
+        <p class="settings-section-title" id="settingsNarrationLabel">Narration</p>
+        <div class="settings-narration">
+          <button class="page-narration-toggle" id="pageNarrationToggle" aria-label="Narration off" title="Narration off" hidden>🗣️ Narration off</button>
+        </div>
       </div>
+      <p class="settings-saved" id="settingsSaved">Your choices are saved on this device.</p>
     </div>
   </div>
 
@@ -2391,6 +2478,10 @@
         settings: 'Settings',
         language: 'Language',
         settingsClose: 'Close settings',
+        settingsKicker: 'POKÉDEX CONTROL PANEL',
+        settingsHint: 'Choose how the Pokédex looks and sounds.',
+        narration: 'Narration',
+        settingsSaved: 'Your choices are saved on this device.',
         theme: 'Theme',
         themeClassic: 'Classic',
         themeRotom: 'Rotom Phone',
@@ -2480,6 +2571,10 @@
         settings: 'Instellingen',
         language: 'Taal',
         settingsClose: 'Sluit instellingen',
+        settingsKicker: 'POKÉDEX BEDIENINGSPANEEL',
+        settingsHint: 'Kies hoe de Pokédex eruitziet en klinkt.',
+        narration: 'Stem',
+        settingsSaved: 'Je keuzes worden op dit apparaat onthouden.',
         theme: 'Thema',
         themeClassic: 'Standaard',
         themeRotom: 'Rotom Phone',
@@ -2518,10 +2613,14 @@
     const settingsPanel = document.getElementById('settingsPanel');
     const settingsClose = document.getElementById('settingsClose');
     const settingsTitle = document.getElementById('settingsTitle');
+    const settingsKicker = document.getElementById('settingsKicker');
+    const settingsHint = document.getElementById('settingsHint');
     const settingsLanguageLabel = document.getElementById('settingsLanguageLabel');
     const settingsLanguageToggle = document.getElementById('settingsLanguageToggle');
     const settingsThemeLabel = document.getElementById('settingsThemeLabel');
     const settingsThemeToggle = document.getElementById('settingsThemeToggle');
+    const settingsNarrationLabel = document.getElementById('settingsNarrationLabel');
+    const settingsSaved = document.getElementById('settingsSaved');
     const pageTitle = document.getElementById('pageTitle');
     const overlay = document.getElementById('overlay');
     const overlayImg = document.getElementById('overlayImg');
@@ -3710,8 +3809,12 @@
       settingsBtn.setAttribute('aria-label', t('settings'));
       settingsBtn.title = t('settings');
       settingsTitle.textContent = t('settings');
+      settingsKicker.textContent = t('settingsKicker');
+      settingsHint.textContent = t('settingsHint');
       settingsLanguageLabel.textContent = t('language');
       settingsThemeLabel.textContent = t('theme');
+      settingsNarrationLabel.textContent = t('narration');
+      settingsSaved.textContent = t('settingsSaved');
       settingsClose.setAttribute('aria-label', t('settingsClose'));
       settingsClose.title = t('settingsClose');
       document.querySelectorAll('.settings-lang-btn').forEach((button) => {
