@@ -1665,6 +1665,17 @@
       gap: 10px;
     }
 
+    .settings-narration {
+      margin-top: 17px;
+    }
+
+    .settings-narration .page-narration-toggle {
+      width: 100%;
+      min-height: 44px;
+      border-width: 3px;
+      font-size: 14px;
+    }
+
     .settings-lang-btn {
       min-height: 51px;
       border: 3px solid #070b14;
@@ -1974,7 +1985,6 @@
     <div class="page-header">
       <div class="page-controls">
         <button class="settings-btn" id="settingsBtn" type="button" aria-label="Settings" title="Settings">⚙️</button>
-        <button class="page-narration-toggle" id="pageNarrationToggle" aria-label="Stem uit" title="Stem uit" hidden>🗣️ Stem</button>
       </div>
       <h1 id="pageTitle">Full Pokédex by Region</h1>
     </div>
@@ -2012,6 +2022,9 @@
       <div class="settings-language" id="settingsLanguageToggle">
         <button class="settings-lang-btn" data-lang="en" type="button">🇬🇧 English</button>
         <button class="settings-lang-btn" data-lang="nl" type="button">🇳🇱 Nederlands</button>
+      </div>
+      <div class="settings-narration">
+        <button class="page-narration-toggle" id="pageNarrationToggle" aria-label="Narration off" title="Narration off" hidden>🗣️ Narration off</button>
       </div>
     </div>
   </div>
