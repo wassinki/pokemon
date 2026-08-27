@@ -4023,6 +4023,70 @@
       return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
     }
 
+    function getForegroundMask(pixels, size) {
+      const pixelCount = size * size;
+      const background = new Uint8Array(pixelCount);
+      const queued = new Uint8Array(pixelCount);
+      const queue = [];
+      const isOpaque = (index) => pixels[index * 4 + 3] >= 100;
+      const addBackground = (index) => {
+        if (!isOpaque(index) || queued[index]) return;
+        queued[index] = 1;
+        background[index] = 1;
+        queue.push(index);
+      };
+
+      for (let x = 0; x < size; x += 1) {
+        addBackground(x);
+        addBackground((size - 1) * size + x);
+      }
+      for (let y = 1; y < size - 1; y += 1) {
+        addBackground(y * size);
+        addBackground(y * size + size - 1);
+      }
+
+      while (queue.length) {
+        const index = queue.shift();
+        const x = index % size;
+        const y = Math.floor(index / size);
+        const pixelIndex = index * 4;
+        const neighbors = [];
+        if (x > 0) neighbors.push(index - 1);
+        if (x < size - 1) neighbors.push(index + 1);
+        if (y > 0) neighbors.push(index - size);
+        if (y < size - 1) neighbors.push(index + size);
+        neighbors.forEach((neighbor) => {
+          if (!isOpaque(neighbor) || queued[neighbor]) return;
+          const neighborIndex = neighbor * 4;
+          const colorDistance = Math.hypot(
+            pixels[pixelIndex] - pixels[neighborIndex],
+            pixels[pixelIndex + 1] - pixels[neighborIndex + 1],
+            pixels[pixelIndex + 2] - pixels[neighborIndex + 2]
+          );
+          if (colorDistance < 42) {
+            queued[neighbor] = 1;
+            background[neighbor] = 1;
+            queue.push(neighbor);
+          }
+        });
+      }
+
+      const foreground = new Uint8Array(pixelCount);
+      let foregroundCount = 0;
+      for (let index = 0; index < pixelCount; index += 1) {
+        if (isOpaque(index) && !background[index]) {
+          foreground[index] = 1;
+          foregroundCount += 1;
+        }
+      }
+      if (foregroundCount < pixelCount * 0.012) {
+        for (let index = 0; index < pixelCount; index += 1) {
+          foreground[index] = isOpaque(index) ? 1 : 0;
+        }
+      }
+      return foreground;
+    }
+
     function imageSignature(image) {
       const canvas = document.createElement('canvas');
       canvas.width = 32;
@@ -4043,29 +4107,14 @@
         32
       );
       const pixels = context.getImageData(0, 0, 32, 32).data;
+      const foreground = getForegroundMask(pixels, 32);
       const signature = Array(18).fill(0);
-      const borderPixels = [];
-      for (let y = 0; y < 32; y += 1) {
-        for (let x = 0; x < 32; x += 1) {
-          if (x !== 0 && y !== 0 && x !== 31 && y !== 31) continue;
-          const index = (y * 32 + x) * 4;
-          if (pixels[index + 3] >= 100) borderPixels.push([pixels[index], pixels[index + 1], pixels[index + 2]]);
-        }
-      }
-      const background = borderPixels.length
-        ? borderPixels.reduce((sum, value) => [sum[0] + value[0], sum[1] + value[1], sum[2] + value[2]], [0, 0, 0]).map((value) => value / borderPixels.length)
-        : null;
-      const borderVariation = background
-        ? borderPixels.reduce((sum, value) => sum + Math.hypot(value[0] - background[0], value[1] - background[1], value[2] - background[2]), 0) / borderPixels.length
-        : Infinity;
-      const hasFlatBackground = borderVariation < 34;
       let includedPixels = 0;
       for (let index = 0; index < pixels.length; index += 4) {
         const red = pixels[index];
         const green = pixels[index + 1];
         const blue = pixels[index + 2];
-        if (pixels[index + 3] < 100 || (red > 242 && green > 242 && blue > 242)) continue;
-        if (hasFlatBackground && Math.hypot(red - background[0], green - background[1], blue - background[2]) < 28) continue;
+        if (!foreground[index / 4] || (red > 242 && green > 242 && blue > 242)) continue;
         const max = Math.max(red, green, blue) / 255;
         const min = Math.min(red, green, blue) / 255;
         const chroma = max - min;
@@ -4105,21 +4154,7 @@
       const cropSize = Math.min(imageWidth, imageHeight);
       context.drawImage(image, (imageWidth - cropSize) / 2, (imageHeight - cropSize) / 2, cropSize, cropSize, 0, 0, size, size);
       const pixels = context.getImageData(0, 0, size, size).data;
-      const borderPixels = [];
-      for (let y = 0; y < size; y += 1) {
-        for (let x = 0; x < size; x += 1) {
-          if (x !== 0 && y !== 0 && x !== size - 1 && y !== size - 1) continue;
-          const index = (y * size + x) * 4;
-          if (pixels[index + 3] >= 100) borderPixels.push([pixels[index], pixels[index + 1], pixels[index + 2]]);
-        }
-      }
-      const background = borderPixels.length
-        ? borderPixels.reduce((sum, value) => [sum[0] + value[0], sum[1] + value[1], sum[2] + value[2]], [0, 0, 0]).map((value) => value / borderPixels.length)
-        : null;
-      const borderVariation = background
-        ? borderPixels.reduce((sum, value) => sum + Math.hypot(value[0] - background[0], value[1] - background[1], value[2] - background[2]), 0) / borderPixels.length
-        : Infinity;
-      const hasFlatBackground = borderVariation < 34;
+      const foreground = getForegroundMask(pixels, size);
       const signature = Array(72).fill(0);
       let includedPixels = 0;
       for (let y = 0; y < size; y += 1) {
@@ -4128,8 +4163,7 @@
           const red = pixels[index];
           const green = pixels[index + 1];
           const blue = pixels[index + 2];
-          if (pixels[index + 3] < 100 || (red > 242 && green > 242 && blue > 242)) continue;
-          if (hasFlatBackground && Math.hypot(red - background[0], green - background[1], blue - background[2]) < 28) continue;
+          if (!foreground[y * size + x] || (red > 242 && green > 242 && blue > 242)) continue;
           const max = Math.max(red, green, blue) / 255;
           const min = Math.min(red, green, blue) / 255;
           const chroma = max - min;
@@ -4206,28 +4240,7 @@
       const cropSize = Math.min(imageWidth, imageHeight);
       context.drawImage(image, (imageWidth - cropSize) / 2, (imageHeight - cropSize) / 2, cropSize, cropSize, 0, 0, size, size);
       const pixels = context.getImageData(0, 0, size, size).data;
-      const borderPixels = [];
-      for (let y = 0; y < size; y += 1) {
-        for (let x = 0; x < size; x += 1) {
-          if (x !== 0 && y !== 0 && x !== size - 1 && y !== size - 1) continue;
-          const index = (y * size + x) * 4;
-          if (pixels[index + 3] >= 100) borderPixels.push([pixels[index], pixels[index + 1], pixels[index + 2]]);
-        }
-      }
-      const background = borderPixels.length
-        ? borderPixels.reduce((sum, value) => [sum[0] + value[0], sum[1] + value[1], sum[2] + value[2]], [0, 0, 0]).map((value) => value / borderPixels.length)
-        : null;
-      const borderVariation = background
-        ? borderPixels.reduce((sum, value) => sum + Math.hypot(value[0] - background[0], value[1] - background[1], value[2] - background[2]), 0) / borderPixels.length
-        : Infinity;
-      const hasFlatBackground = borderVariation < 34;
-      const foreground = Array(size * size).fill(false);
-      for (let index = 0; index < foreground.length; index += 1) {
-        const pixelIndex = index * 4;
-        if (pixels[pixelIndex + 3] < 100) continue;
-        if (hasFlatBackground && Math.hypot(pixels[pixelIndex] - background[0], pixels[pixelIndex + 1] - background[1], pixels[pixelIndex + 2] - background[2]) < 28) continue;
-        foreground[index] = true;
-      }
+      const foreground = getForegroundMask(pixels, size);
       const signature = Array(16).fill(0);
       let totalEdge = 0;
       for (let y = 1; y < size - 1; y += 1) {
