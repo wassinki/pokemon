@@ -244,6 +244,57 @@
       outline-offset: 3px;
     }
 
+    /* The boot sequence follows the selected overview theme. */
+    #bootScreen.theme-rotom { background: #04131f; }
+    #bootScreen.theme-rotom .boot-half-top { background: linear-gradient(135deg, #ff4054, #a82042); }
+    #bootScreen.theme-rotom .boot-half-bottom { background: linear-gradient(135deg, #064a70, #14a8d0); }
+    #bootScreen.theme-rotom .boot-half::after { background: linear-gradient(rgba(99, 234, 255, 0.25) 1px, transparent 1px), linear-gradient(90deg, rgba(99, 234, 255, 0.25) 1px, transparent 1px); background-size: 22px 22px; }
+    #bootScreen.theme-rotom .boot-orb-top { background: #ff4e5f; }
+    #bootScreen.theme-rotom .boot-orb-bottom { background: #d9faff; }
+
+    #bootScreen.theme-pikachu { background: #56391f; }
+    #bootScreen.theme-pikachu .boot-half-top { background: #ffd62e; }
+    #bootScreen.theme-pikachu .boot-half-bottom { background: #76502d; }
+    #bootScreen.theme-pikachu .boot-half::after { opacity: 0.28; background: radial-gradient(circle, #ed5347 0 5px, transparent 6px) 13px 13px / 38px 38px; }
+    #bootScreen.theme-pikachu .boot-orb-top { background: #ed5347; }
+    #bootScreen.theme-pikachu .boot-orb-bottom { background: #fff7c4; }
+    #bootScreen.theme-pikachu .boot-title { color: #56391f; text-shadow: 3px 3px 0 #fff6ca; }
+
+    #bootScreen.theme-cozy { background: #49362f; }
+    #bootScreen.theme-cozy .boot-half-top { background: #bb7563; }
+    #bootScreen.theme-cozy .boot-half-bottom { background: #739266; }
+    #bootScreen.theme-cozy .boot-half::after { opacity: 0.2; background: repeating-linear-gradient(45deg, transparent 0 13px, #fff4e1 13px 15px); }
+    #bootScreen.theme-cozy .boot-orb-top { background: #b86a5a; }
+    #bootScreen.theme-cozy .boot-orb-bottom { background: #fff2df; }
+
+    #bootScreen.theme-galaxy { background: #090720; }
+    #bootScreen.theme-galaxy .boot-half-top { background: linear-gradient(135deg, #39236d, #8a59d2); }
+    #bootScreen.theme-galaxy .boot-half-bottom { background: linear-gradient(135deg, #17153e, #315f9c); }
+    #bootScreen.theme-galaxy .boot-half::after { opacity: 0.48; background: radial-gradient(circle at 18px 14px, #fff 0 1px, transparent 2px) 0 0 / 61px 73px, radial-gradient(circle at 43px 39px, #90ecff 0 1px, transparent 2px) 0 0 / 97px 83px; }
+    #bootScreen.theme-galaxy .boot-orb-top { background: #9b65e5; }
+    #bootScreen.theme-galaxy .boot-orb-bottom { background: #e8ddff; }
+
+    #bootScreen.theme-forest { background: #213e2b; }
+    #bootScreen.theme-forest .boot-half-top { background: #426d47; }
+    #bootScreen.theme-forest .boot-half-bottom { background: #82ad62; }
+    #bootScreen.theme-forest .boot-half::after { opacity: 0.22; background: repeating-linear-gradient(125deg, transparent 0 15px, #e8f7c8 15px 18px); }
+    #bootScreen.theme-forest .boot-orb-top { background: #699656; }
+    #bootScreen.theme-forest .boot-orb-bottom { background: #f6ffe5; }
+
+    #bootScreen.theme-ocean { background: #052e44; }
+    #bootScreen.theme-ocean .boot-half-top { background: #08729e; }
+    #bootScreen.theme-ocean .boot-half-bottom { background: #21b5c8; }
+    #bootScreen.theme-ocean .boot-half::after { opacity: 0.24; background: repeating-linear-gradient(-25deg, transparent 0 13px, #d8ffff 13px 15px); }
+    #bootScreen.theme-ocean .boot-orb-top { background: #159cc1; }
+    #bootScreen.theme-ocean .boot-orb-bottom { background: #e2fbff; }
+
+    #bootScreen.theme-kanto { background: #10151f; }
+    #bootScreen.theme-kanto .boot-half-top { background: #d9414a; }
+    #bootScreen.theme-kanto .boot-half-bottom { background: #237eb9; }
+    #bootScreen.theme-kanto .boot-half::after { opacity: 0.2; background: repeating-linear-gradient(90deg, transparent 0 19px, #f9f7ed 19px 21px); }
+    #bootScreen.theme-kanto .boot-orb-top { background: #d9414a; }
+    #bootScreen.theme-kanto .boot-orb-bottom { background: #f9f7ed; }
+
     @keyframes boot-content-in {
       from { opacity: 0; transform: scale(0.82); }
       to { opacity: 1; transform: scale(1); }
@@ -3837,6 +3888,10 @@
       currentTheme = supportedThemes.includes(theme) ? theme : 'classic';
       pokedexShell.classList.remove(...supportedThemes.map((name) => `theme-${name}`));
       pokedexShell.classList.add(`theme-${currentTheme}`);
+      if (bootScreen) {
+        bootScreen.classList.remove(...supportedThemes.map((name) => `theme-${name}`));
+        bootScreen.classList.add(`theme-${currentTheme}`);
+      }
       try {
         localStorage.setItem('pokedexTheme', currentTheme);
       } catch (error) {
