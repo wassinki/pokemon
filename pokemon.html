@@ -2791,13 +2791,21 @@
       }
     }
 
+    function getPokedexSpeechLanguage(language = currentLanguage) {
+      return language === 'nl' ? 'nl-NL' : 'en-US';
+    }
+
     function primePokedexSpeech() {
-      if (speechIsPrimed || currentLanguage !== 'nl' || !narrationEnabled || !('speechSynthesis' in window)) {
+      if (speechIsPrimed || !narrationEnabled || !('speechSynthesis' in window)) {
         return;
       }
       try {
+        const voices = window.speechSynthesis.getVoices();
+        if (!getPreferredPokedexVoice(voices, getPokedexSpeechLanguage().slice(0, 2))) {
+          return;
+        }
         const primer = new SpeechSynthesisUtterance(' ');
-        primer.lang = 'nl-NL';
+        primer.lang = getPokedexSpeechLanguage();
         primer.volume = 0;
         window.speechSynthesis.speak(primer);
         speechIsPrimed = true;
@@ -2807,14 +2815,16 @@
     }
 
     function updateNarrationButton() {
-      const narrationAvailable = currentLanguage === 'nl';
+      const voices = 'speechSynthesis' in window ? window.speechSynthesis.getVoices() : [];
+      const narrationAvailable = 'speechSynthesis' in window
+        && Boolean(getPreferredPokedexVoice(voices, getPokedexSpeechLanguage().slice(0, 2)));
       pageNarrationToggle.hidden = !narrationAvailable;
       if (!narrationAvailable) {
         stopPokedexNarration();
         return;
       }
       const label = narrationEnabled ? t('narrationOff') : t('narrationOn');
-      pageNarrationToggle.textContent = narrationEnabled ? '🗣️ Stem uit' : '🔇 Stem aan';
+      pageNarrationToggle.textContent = narrationEnabled ? `🗣️ ${t('narrationOff')}` : `🔇 ${t('narrationOn')}`;
       pageNarrationToggle.setAttribute('aria-label', label);
       pageNarrationToggle.title = label;
       pageNarrationToggle.classList.toggle('is-active', narrationEnabled);
@@ -2849,7 +2859,7 @@
     function getPreferredPokedexVoice(voices, languagePrefix) {
       const matchingVoices = voices.filter((voice) => voice.lang.toLowerCase().startsWith(languagePrefix));
       const feminineVoice = matchingVoices.find((voice) => /zira|jenny|aria|ava|emma|libby|michelle|sonia|colette|hanna|female|vrouw/i.test(voice.name));
-      return feminineVoice || matchingVoices[0] || voices[0] || null;
+      return feminineVoice || matchingVoices[0] || null;
     }
 
     function playPokedexChime() {
@@ -2922,7 +2932,11 @@
     }
 
     function speakPokedexEntry(pokemon, species, textOverride = '', languageOverride = '') {
-      if (currentLanguage !== 'nl' || !narrationEnabled || !('speechSynthesis' in window)) {
+      if (!narrationEnabled || !('speechSynthesis' in window)) {
+        return;
+      }
+
+      if (languageOverride && !languageOverride.toLowerCase().startsWith(currentLanguage)) {
         return;
       }
 
@@ -2932,14 +2946,10 @@
       }
 
       const requestId = ++pokedexSpeechRequest;
-      const hasDutchEntry = hasFlavorTextInLanguage(species, 'nl');
-      const speechLanguage = languageOverride || (currentLanguage === 'nl' && hasDutchEntry ? 'nl-NL' : 'en-US');
+      const speechLanguage = languageOverride || getPokedexSpeechLanguage();
       const spokenName = formatPokemonNameForSpeech(pokemon.name);
       const intro = speechLanguage.startsWith('nl') ? 'Pokédex registratie.' : 'Pokédex entry.';
-      const useSeparateNameVoice = speechLanguage.startsWith('nl');
-      const utterance = new SpeechSynthesisUtterance(
-        useSeparateNameVoice ? `${intro} ${factText}` : `${intro} ${spokenName}. ${factText}`
-      );
+      const utterance = new SpeechSynthesisUtterance(`${intro} ${spokenName}. ${factText}`);
       utterance.lang = speechLanguage;
       utterance.rate = 1.08;
       utterance.pitch = 1.28;
@@ -2947,27 +2957,15 @@
 
       const voices = window.speechSynthesis.getVoices();
       const matchingVoice = getPreferredPokedexVoice(voices, speechLanguage.slice(0, 2));
-      if (matchingVoice) {
-        utterance.voice = matchingVoice;
+      if (!matchingVoice) {
+        return;
       }
-
-      const nameUtterance = new SpeechSynthesisUtterance(spokenName);
-      nameUtterance.lang = 'en-US';
-      nameUtterance.rate = 1.02;
-      nameUtterance.pitch = 1.16;
-      nameUtterance.volume = 0.88;
-      const englishVoice = getPreferredPokedexVoice(voices, 'en');
-      if (englishVoice) {
-        nameUtterance.voice = englishVoice;
-      }
+      utterance.voice = matchingVoice;
 
       window.speechSynthesis.cancel();
       window.setTimeout(() => {
         if (requestId === pokedexSpeechRequest && overlay.classList.contains('is-open')) {
           playPokedexChime();
-          if (useSeparateNameVoice) {
-            window.speechSynthesis.speak(nameUtterance);
-          }
           window.speechSynthesis.speak(utterance);
         }
       }, 80);
@@ -3700,6 +3698,8 @@
         return;
       }
 
+      stopPokedexNarration();
+      speechIsPrimed = false;
       currentLanguage = nextLang;
       updateNarrationButton();
       syncPhotoFinderText();
@@ -3764,7 +3764,7 @@
         bindZMoveEvents();
         if (currentLanguage === 'nl' && !hasFlavorTextInLanguage(species, 'nl')) {
           translateFlavorTextToDutch(getLocalizedFlavorText(species, 'en')).then((translatedText) => {
-            if (currentPokemonId === id && currentOverlayData && currentOverlayData.species === species) {
+            if (currentLanguage === 'nl' && currentPokemonId === id && currentOverlayData && currentOverlayData.species === species) {
               speakPokedexEntry(pokemon, species, translatedText, 'nl-NL');
             }
           });
@@ -3940,6 +3940,10 @@
 
     photoCameraStart.addEventListener('click', togglePokemonCamera);
     window.addEventListener('beforeunload', stopPokemonCamera);
+
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.addEventListener('voiceschanged', updateNarrationButton);
+    }
 
     settingsBtn.addEventListener('click', () => {
       settingsPanel.hidden = false;
