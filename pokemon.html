@@ -1924,7 +1924,7 @@
       <p class="photo-finder-note" id="photoFinderNote">Voeg je eigen Hugging Face-sleutel toe. Deze wordt alleen op dit apparaat in je browser bewaard.</p>
       <div class="photo-finder-grid">
         <label><span id="photoApiKeyLabel">Hugging Face-sleutel</span><input id="photoApiKey" type="password" autocomplete="off" placeholder="hf_..." spellcheck="false"></label>
-        <label><span id="photoModelLabel">Vision-AI-model</span><input id="photoModel" type="text" value="Qwen/Qwen2.5-VL-7B-Instruct" spellcheck="false"></label>
+        <label><span id="photoModelLabel">Vision-AI-model</span><input id="photoModel" type="text" value="Qwen/Qwen2.5-VL-3B-Instruct" spellcheck="false"></label>
         <label class="photo-file-field"><span id="photoFileLabel">Foto van een Pokémon</span><input id="photoFile" type="file" accept="image/*" capture="environment"></label>
       </div>
       <div class="photo-finder-actions">
@@ -3838,7 +3838,7 @@
     try {
       photoApiKey.value = window.localStorage.getItem('pokemonHuggingFaceKey') || '';
       const savedRecognitionModel = window.localStorage.getItem('pokemonRecognitionModel');
-      photoModel.value = savedRecognitionModel === 'imjeffhi/pokemon_classifier'
+      photoModel.value = ['imjeffhi/pokemon_classifier', 'Qwen/Qwen2.5-VL-7B-Instruct'].includes(savedRecognitionModel)
         ? photoModel.value
         : (savedRecognitionModel || photoModel.value);
     } catch (error) {
