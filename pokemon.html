@@ -1925,18 +1925,12 @@
 
     <section class="photo-finder" aria-labelledby="photoFinderTitle">
       <h2 id="photoFinderTitle">Pokémon herkennen met een foto</h2>
-      <p class="photo-finder-note" id="photoFinderNote">Geen sleutel nodig. Deze proef vergelijkt een plaatje met officiële Pokédex-afbeeldingen.</p>
-      <div class="photo-finder-grid">
-        <label class="photo-file-field"><span id="photoFileLabel">Foto van een Pokémon</span><input id="photoFile" type="file" accept="image/*" capture="environment"></label>
-      </div>
+      <p class="photo-finder-note" id="photoFinderNote">Geen sleutel nodig. Maak een foto en de Pokédex vergelijkt hem met officiële afbeeldingen.</p>
       <div class="photo-finder-actions">
-        <button class="photo-recognize-btn" id="photoRecognize" type="button">Vergelijk plaatje</button>
-        <button class="photo-recognize-btn photo-test-btn" id="photoCameraStart" type="button">Open camera</button>
-        <button class="photo-recognize-btn" id="photoCameraCapture" type="button" hidden>Maak foto</button>
+        <button class="photo-recognize-btn photo-test-btn" id="photoCameraStart" type="button">📷 Open camera</button>
         <span class="photo-status" id="photoStatus" aria-live="polite"></span>
       </div>
       <div class="photo-camera" id="photoCamera"><video id="photoCameraVideo" autoplay playsinline muted></video></div>
-      <img class="photo-preview" id="photoPreview" alt="Gekozen Pokémonfoto">
     </section>
 
     <div id="container"></div>
@@ -2064,11 +2058,8 @@
         unknown: 'Unknown',
         searchPlaceholder: 'Search Pokémon...',
         photoFinderTitle: 'Identify a Pokémon from a photo',
-        photoFinderNote: 'No key needed. This experiment compares a picture with official Pokédex artwork.',
-        photoFile: 'Pokémon photo',
-        photoRecognize: 'Compare picture',
-        photoCameraStart: 'Open camera',
-        photoCameraStop: 'Close camera',
+        photoFinderNote: 'No key needed. Take a photo and the Pokédex compares it with official artwork.',
+        photoCameraStart: '📷 Open camera',
         photoCameraCapture: 'Take photo',
         photoCameraLoading: 'Opening camera…',
         photoCameraError: 'Camera could not be opened. Allow camera access in your browser settings.',
@@ -2146,9 +2137,7 @@
         photoFinderTitle: 'Pokémon herkennen met een foto',
         photoFinderNote: 'Geen sleutel nodig. Deze proef vergelijkt een plaatje met officiële Pokédex-afbeeldingen.',
         photoFile: 'Foto van een Pokémon',
-        photoRecognize: 'Vergelijk plaatje',
-        photoCameraStart: 'Open camera',
-        photoCameraStop: 'Sluit camera',
+        photoCameraStart: '📷 Open camera',
         photoCameraCapture: 'Maak foto',
         photoCameraLoading: 'Camera openen…',
         photoCameraError: 'De camera kon niet worden geopend. Geef cameratoegang in de browserinstellingen.',
@@ -2164,13 +2153,9 @@
 
     const container = document.getElementById('container');
     const searchBox = document.getElementById('searchBox');
-    const photoFile = document.getElementById('photoFile');
-    const photoRecognize = document.getElementById('photoRecognize');
     const photoCameraStart = document.getElementById('photoCameraStart');
-    const photoCameraCapture = document.getElementById('photoCameraCapture');
     const photoCamera = document.getElementById('photoCamera');
     const photoCameraVideo = document.getElementById('photoCameraVideo');
-    const photoPreview = document.getElementById('photoPreview');
     const photoStatus = document.getElementById('photoStatus');
     const pageLanguageToggle = document.getElementById('pageLanguageToggle');
     const pageTitle = document.getElementById('pageTitle');
@@ -3376,10 +3361,7 @@
     function syncPhotoFinderText() {
       document.getElementById('photoFinderTitle').textContent = t('photoFinderTitle');
       document.getElementById('photoFinderNote').textContent = t('photoFinderNote');
-      document.getElementById('photoFileLabel').textContent = t('photoFile');
-      photoRecognize.textContent = t('photoRecognize');
-      photoCameraCapture.textContent = t('photoCameraCapture');
-      photoCameraStart.textContent = photoCameraStream ? t('photoCameraStop') : t('photoCameraStart');
+      photoCameraStart.textContent = photoCameraStream ? t('photoCameraCapture') : t('photoCameraStart');
     }
 
     function stopPokemonCamera() {
@@ -3389,13 +3371,12 @@
       photoCameraStream = null;
       photoCameraVideo.srcObject = null;
       photoCamera.classList.remove('is-visible');
-      photoCameraCapture.hidden = true;
       photoCameraStart.textContent = t('photoCameraStart');
     }
 
     async function togglePokemonCamera() {
       if (photoCameraStream) {
-        stopPokemonCamera();
+        capturePokemonCameraPhoto();
         return;
       }
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -3412,8 +3393,7 @@
         photoCameraVideo.srcObject = photoCameraStream;
         await photoCameraVideo.play();
         photoCamera.classList.add('is-visible');
-        photoCameraCapture.hidden = false;
-        photoCameraStart.textContent = t('photoCameraStop');
+        photoCameraStart.textContent = t('photoCameraCapture');
         photoStatus.textContent = '';
       } catch (error) {
         console.error('Camera could not be opened', error);
@@ -3435,15 +3415,13 @@
         photoStatus.textContent = t('photoError');
         return;
       }
-      photoFile.value = '';
-      photoPreview.src = URL.createObjectURL(capturedPokemonPhoto);
-      photoPreview.classList.add('is-visible');
       photoStatus.textContent = '';
       stopPokemonCamera();
+      recognizePokemonPhoto();
     }
 
     function selectedPokemonPhoto() {
-      return capturedPokemonPhoto || (photoFile.files && photoFile.files[0]);
+      return capturedPokemonPhoto;
     }
 
     function artworkUrl(id) {
@@ -3535,7 +3513,7 @@
         photoStatus.textContent = t('photoChooseFile');
         return;
       }
-      photoRecognize.disabled = true;
+      photoCameraStart.disabled = true;
       photoStatus.textContent = t('photoLoading');
       try {
         const uploadedImage = await createImageBitmap(file);
@@ -3555,7 +3533,7 @@
         console.error('Pokémon artwork comparison failed', error);
         photoStatus.textContent = t('photoNetworkError');
       } finally {
-        photoRecognize.disabled = false;
+        photoCameraStart.disabled = false;
       }
     }
 
@@ -3892,22 +3870,7 @@
       });
     });
 
-    photoFile.addEventListener('change', () => {
-      const file = photoFile.files && photoFile.files[0];
-      capturedPokemonPhoto = null;
-      if (!file) {
-        photoPreview.removeAttribute('src');
-        photoPreview.classList.remove('is-visible');
-        return;
-      }
-      photoPreview.src = URL.createObjectURL(file);
-      photoPreview.classList.add('is-visible');
-      photoStatus.textContent = '';
-    });
-
-    photoRecognize.addEventListener('click', recognizePokemonPhoto);
     photoCameraStart.addEventListener('click', togglePokemonCamera);
-    photoCameraCapture.addEventListener('click', capturePokemonCameraPhoto);
     window.addEventListener('beforeunload', stopPokemonCamera);
 
     pageLanguageToggle.addEventListener('click', (event) => {
